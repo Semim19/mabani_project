@@ -8,8 +8,6 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "src/*.c",
-                "-I",
-                "include/",
                 "-o",
                 "neogit"
             ],
