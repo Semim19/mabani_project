@@ -36,6 +36,19 @@ int run_init(int argc, char* const argv[]){
             if(chdir("..") != 0) return 1;
         }
     }while(strcmp(tmp_cwd, "/") != 0);
+
+    // returning to cwd
+    if(chdir(cwd) != 0) return 1;
+
+    // TODO if there was no .neogit
+    if(!exists){
+        // make .neogit directory
+        if(mkdir(".neogit", 0755) != 0) return 1;
+
+    } else {
+        perror("neogit repo has already been initialized!\n");
+    }
+    return 0;
     
 }
 
