@@ -10,6 +10,7 @@ int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
+int folder_staging(const char* dirname);
 
 int run_init(int argc, char* const argv[]){
     // current working directory
@@ -65,6 +66,23 @@ int isDir(const char* fileName)
     stat(fileName, &path);
     return S_ISREG(path.st_mode);
 }
+int dir_staging(const char* dirname){
+    DIR *dir = opendir(dirname);
+    struct dirent *entry;
+    char full_address[1000];
+    strcpy(full_address, dirname);
+    while((entry = readdir(dir)) != NULL){
+        strcat(full_address, entry->d_name);
+        if(entry->d_type == DT_DIR){
+            dir_staging(full_address);
+        }
+        else{
+            add_to_staging(full_address);
+        }
+        strcpy(full_address, dirname);
+    }
+    return 0;
+}
 int run_add(int argc, char* const argv[]){
     if(argc < 3){
         perror("Please choose a file!\n");
@@ -76,11 +94,18 @@ int run_add(int argc, char* const argv[]){
             return 1;
         }
         for(int i = 3; i < argc; i++){
-            return add_to_staging(argv[i]);
+            if(isDir(argv[i]) != 0)
+                return add_to_staging(argv[i]);
+            else
+                return dir_staging(argv[i]);
+            
         }
     }
     for(int i = 2; i < argc; i++){
-        return add_to_staging(argv[i]);
+        if(isDir(argv[i]) != 0)
+            return add_to_staging(argv[i]);
+        else
+            return dir_staging(argv[i]);
     }
 }
 int add_to_staging(char *filepath){
