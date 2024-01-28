@@ -14,7 +14,7 @@ int run_init(int argc, char* const argv[]){
     // just like cwd but used when we want to check
     // the parent so we need to change the directory
     char tmp_cwd[1000];
-    bool exists = false; // determine .neogit existence
+    bool exists = false; // determine .sem existence
     struct dirent *entry; // pointer to check each file
     do{
         DIR* dir = opendir(".");
@@ -23,7 +23,7 @@ int run_init(int argc, char* const argv[]){
             return 1;
         }
         while((entry = readdir(dir)) != NULL){
-            if(entry->d_type == DT_DIR && strcmp(entry->d_name, ".neogit") == 0){
+            if(entry->d_type == DT_DIR && strcmp(entry->d_name, ".sem") == 0){
                 exists = true;
             }
         }
@@ -40,13 +40,13 @@ int run_init(int argc, char* const argv[]){
     // returning to cwd
     if(chdir(cwd) != 0) return 1;
 
-    // TODO if there was no .neogit
+    // TODO if there was no .sem
     if(!exists){
-        // make .neogit directory
-        if(mkdir(".neogit", 0755) != 0) return 1;
+        // make .sem directory
+        if(mkdir(".sem", 0755) != 0) return 1;
 
     } else {
-        perror("neogit repo has already been initialized!\n");
+        perror("sem repo has already been initialized!\n");
     }
     return 0;
     

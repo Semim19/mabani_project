@@ -8,7 +8,7 @@
             "name": "Run and Debug C/C++ Linux",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/neogit",
+            "program": "${workspaceFolder}/sem",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
