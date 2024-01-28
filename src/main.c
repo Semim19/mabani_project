@@ -78,9 +78,12 @@ int run_add(int argc, char* const argv[]){
 }
 int add_to_staging(char *filepath){
     FILE *file = fopen(".sem/staging", "r");
-    if(file == NULL) return 1;
+    if(file == NULL){
+        perror("Cannot open .sem/staging!\n");
+        return 1;
+    }
     char line[1000];
-    while(fgets(line, 1000, file) != NULL){
+    while(fgets(line, sizeof(line), file) != NULL){
         // remove \n
         line[strcspn(line, "\n")] = 0;
 
@@ -91,7 +94,7 @@ int add_to_staging(char *filepath){
     file = fopen(".sem/staging", "a");
     if(file == NULL) return 1;
 
-    fprintf(file, "%s\n", line);
+    fprintf(file, "%s\n", filepath);
     fclose(file);
     
     return 0;
