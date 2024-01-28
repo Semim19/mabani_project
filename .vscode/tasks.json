@@ -9,7 +9,7 @@
                 "-g",
                 "src/*.c",
                 "-o",
-                "neogit"
+                "sem"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
