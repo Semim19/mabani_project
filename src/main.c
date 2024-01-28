@@ -9,6 +9,7 @@
 int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
+int isDir(const char* fileName);
 
 int run_init(int argc, char* const argv[]){
     // current working directory
@@ -57,6 +58,12 @@ int run_init(int argc, char* const argv[]){
     }
     return 0;
     
+}
+int isDir(const char* fileName)
+{
+    struct stat path;
+    stat(fileName, &path);
+    return S_ISREG(path.st_mode);
 }
 int run_add(int argc, char* const argv[]){
     if(argc < 3){
