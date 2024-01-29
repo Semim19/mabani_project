@@ -10,7 +10,7 @@ int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
-int folder_staging(const char* dirname);
+int dir_staging(const char* dirname);
 
 int run_init(int argc, char* const argv[]){
     // current working directory
@@ -49,11 +49,12 @@ int run_init(int argc, char* const argv[]){
     if(!exists){
         // make .sem directory
         if(mkdir(".sem", 0755) != 0) return 1;
-        FILE *file = fopen(".sem/staging", "w");
+        chdir(".sem");
+        if(mkdir("staging", 0755) != 0) return 1;
+        if(mkdir("tracks", 0755) != 0) return 1;
+        chdir(cwd);
+        FILE *file = fopen(".sem/staging/fileAddress", "w");
         fclose(file);
-        file = fopen(".sem/tracks", "w");
-        fclose(file);
-
     } else {
         perror("sem repo has already been initialized!\n");
     }
@@ -78,15 +79,18 @@ int dir_staging(const char* dirname){
         if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
             continue;
         }
-        strcat(full_address, "/");
-        strcat(full_address, entry->d_name);
+        // strcat(full_address, "/");
+        // strcat(full_address, entry->d_name);
         if(entry->d_type == DT_DIR){
-            dir_staging(full_address);
+            chdir(dirname);
+            dir_staging(entry->d_name);
         }
         else{
-            add_to_staging(full_address);
+            chdir(dirname);
+            add_to_staging(entry->d_name);
         }
-        strcpy(full_address, dirname);
+        // strcpy(full_address, dirname);
+        chdir("..");
     }
     return 0;
 }
@@ -116,9 +120,31 @@ int run_add(int argc, char* const argv[]){
     }
 }
 int add_to_staging(char *filepath){
-    FILE *file = fopen(".sem/staging", "r");
+    char cwd[1000];
+    if(getcwd(cwd, sizeof(cwd)) == NULL) return 1;
+    struct dirent *entry; // pointer to check each file
+    // returning to the directory with .sem
+    do{
+        int flag = 0;
+        DIR* dir = opendir(".");
+        if(dir == NULL){
+            perror("Cannot open current directory.\n");
+            return 1;
+        }
+        while((entry = readdir(dir)) != NULL){
+            if(entry->d_type == DT_DIR && strcmp(entry->d_name, ".sem") == 0){
+                flag = 1;
+                break;
+            }
+        }
+        if(flag)
+            break;
+        closedir(dir);
+        if(chdir("..") != 0) return 1;
+    }while(1);
+    FILE *file = fopen(".sem/staging/fileAddress", "r");
     if(file == NULL){
-        perror("Cannot open .sem/staging!\n");
+        perror("Cannot open .sem/staging/fileAddress!\n");
         return 1;
     }
     char line[1000];
@@ -130,8 +156,9 @@ int add_to_staging(char *filepath){
     }
     fclose(file);
 
-    file = fopen(".sem/staging", "a");
+    file = fopen(".sem/staging/fileAddress", "a");
     if(file == NULL) return 1;
+    chdir(cwd);
     char *path = realpath(filepath, NULL);
     if(path == NULL){
         fprintf(stderr, "Cannot find file with name [%s]", filepath);
