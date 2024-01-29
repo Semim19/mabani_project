@@ -67,11 +67,18 @@ int isDir(const char* fileName)
     return S_ISREG(path.st_mode);
 }
 int dir_staging(const char* dirname){
+    // char cwd[1000];
+    // if(getcwd(cwd, sizeof(cwd) == NULL)) return 1;
+    // printf("%s\n", cwd);
     DIR *dir = opendir(dirname);
     struct dirent *entry;
     char full_address[1000];
     strcpy(full_address, dirname);
     while((entry = readdir(dir)) != NULL){
+        if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
+            continue;
+        }
+        strcat(full_address, "/");
         strcat(full_address, entry->d_name);
         if(entry->d_type == DT_DIR){
             dir_staging(full_address);
@@ -125,14 +132,24 @@ int add_to_staging(char *filepath){
 
     file = fopen(".sem/staging", "a");
     if(file == NULL) return 1;
-
-    fprintf(file, "%s\n", filepath);
+    char *path = realpath(filepath, NULL);
+    if(path == NULL){
+        fprintf(stderr, "Cannot find file with name [%s]", filepath);
+    }
+    fprintf(file, "%s\n", path);
     fclose(file);
     
     return 0;
 }
 
+// #define _DEBUG_
+#ifdef _DEBUG_
+int main(){
+    int argc = 3;
+    char* argv[] = {"sem", "add", "test"};
+#else
 int main(int argc, char* argv[]){
+#endif
     if(argc < 2){
         fprintf(stdout, "Please enter a valid command\n");
         return 1;
