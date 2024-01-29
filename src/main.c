@@ -11,6 +11,7 @@ int run_add(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
+int file_copying(FILE *input, FILE *output);
 
 int run_init(int argc, char* const argv[]){
     // current working directory
@@ -24,7 +25,7 @@ int run_init(int argc, char* const argv[]){
     do{
         DIR* dir = opendir(".");
         if(dir == NULL){
-            perror("Cannot open current directory.\n");
+            perror("Cannot open current directory.");
             return 1;
         }
         while((entry = readdir(dir)) != NULL){
@@ -56,7 +57,7 @@ int run_init(int argc, char* const argv[]){
         FILE *file = fopen(".sem/staging/fileAddress", "w");
         fclose(file);
     } else {
-        perror("sem repo has already been initialized!\n");
+        perror("sem repo has already been initialized!");
     }
     return 0;
     
@@ -96,28 +97,38 @@ int dir_staging(const char* dirname){
 }
 int run_add(int argc, char* const argv[]){
     if(argc < 3){
-        perror("Please choose a file!\n");
+        perror("Please choose a file!");
         return 1;
     }
     if(strcmp(argv[2], "-f") == 0){
         if(argc < 4){
-            perror("Please choose a file!\n");
+            perror("Please choose a file!");
             return 1;
         }
         for(int i = 3; i < argc; i++){
-            if(isDir(argv[i]) != 0)
-                return add_to_staging(argv[i]);
+            if(access(argv[i], F_OK) != 0){
+                perror("File doesn't exist!");
+                return 1;
+            }
+            if(isDir(argv[i]) == 0)
+                dir_staging(argv[i]);
             else
-                return dir_staging(argv[i]);
+                add_to_staging(argv[i]);
             
         }
+        return 0;
     }
     for(int i = 2; i < argc; i++){
-        if(isDir(argv[i]) != 0)
-            return add_to_staging(argv[i]);
+        if(access(argv[i], F_OK) != 0){
+            perror("File doesn't exist!");
+            return 1;
+        }
+        if(isDir(argv[i]) == 0)
+            dir_staging(argv[i]);
         else
-            return dir_staging(argv[i]);
+            add_to_staging(argv[i]);
     }
+    return 0;
 }
 int add_to_staging(char *filepath){
     char cwd[1000];
@@ -128,7 +139,7 @@ int add_to_staging(char *filepath){
         int flag = 0;
         DIR* dir = opendir(".");
         if(dir == NULL){
-            perror("Cannot open current directory.\n");
+            perror("Cannot open current directory.");
             return 1;
         }
         while((entry = readdir(dir)) != NULL){
@@ -144,7 +155,7 @@ int add_to_staging(char *filepath){
     }while(1);
     FILE *file = fopen(".sem/staging/fileAddress", "r");
     if(file == NULL){
-        perror("Cannot open .sem/staging/fileAddress!\n");
+        perror("Cannot open .sem/staging/fileAddress!");
         return 1;
     }
     char line[1000];
@@ -158,14 +169,35 @@ int add_to_staging(char *filepath){
 
     file = fopen(".sem/staging/fileAddress", "a");
     if(file == NULL) return 1;
-    chdir(cwd);
+    if(chdir(".sem/staging") != 0) return 1;
+    FILE *file_output = fopen(filepath, "w");
+    if(file_output == NULL){
+        perror("Cannot open copy file!");
+        return 1;
+    }
+    if(chdir(cwd) != 0) return 1;
+    FILE *file_input = fopen(filepath, "r");
+    if(file_input == NULL){
+        perror("Cannot open original file!");
+        return 1;
+    }
     char *path = realpath(filepath, NULL);
     if(path == NULL){
         fprintf(stderr, "Cannot find file with name [%s]", filepath);
     }
     fprintf(file, "%s\n", path);
     fclose(file);
-    
+    return file_copying(file_input, file_output);
+}
+int file_copying(FILE *input, FILE *output){
+    char c = fgetc(input); 
+    while (c != EOF) 
+    { 
+        fputc(c, output); 
+        c = fgetc(input); 
+    }
+    fclose(input);
+    fclose(output);
     return 0;
 }
 
@@ -173,7 +205,7 @@ int add_to_staging(char *filepath){
 #ifdef _DEBUG_
 int main(){
     int argc = 3;
-    char* argv[] = {"sem", "add", "test"};
+    char* argv[] = {"sem", "add", "mammad"};
 #else
 int main(int argc, char* argv[]){
 #endif
