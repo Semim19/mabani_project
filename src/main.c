@@ -97,23 +97,26 @@ int dir_staging(const char* dirname){
     DIR *dir = opendir(dirname);
     struct dirent *entry;
     char full_address[1000];
-    strcpy(full_address, dirname);
     while((entry = readdir(dir)) != NULL){
         if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
             continue;
         }
-        // strcat(full_address, "/");
-        // strcat(full_address, entry->d_name);
+        strcpy(full_address, dirname);
+        strcat(full_address, "/");
+        strcat(full_address, entry->d_name);
         if(entry->d_type == DT_DIR){
-            chdir(dirname);
-            dir_staging(entry->d_name);
+            // chdir(dirname);
+            dir_staging(full_address);
         }
-        else{
-            chdir(dirname);
-            add_to_staging(entry->d_name);
+        strcpy(full_address, dirname);
+        strcat(full_address, "/");
+        strcat(full_address, entry->d_name);
+        if(entry->d_type != DT_DIR){
+            // chdir(dirname);
+            add_to_staging(full_address);
         }
         // strcpy(full_address, dirname);
-        chdir("..");
+        // chdir("..");
     }
     return 0;
 }
@@ -209,35 +212,40 @@ int add_to_staging(char *filepath){
     if(getcwd(cwd, sizeof(cwd)) == NULL) return 1;
     struct dirent *entry; // pointer to check each file
     // returning to the directory with .sem
-    do{
-        int flag = 0;
-        DIR* dir = opendir(".");
-        if(dir == NULL){
-            perror("Cannot open current directory.");
-            return 1;
-        }
-        while((entry = readdir(dir)) != NULL){
-            if(entry->d_type == DT_DIR && strcmp(entry->d_name, ".sem") == 0){
-                flag = 1;
-                break;
-            }
-        }
-        if(flag)
-            break;
-        closedir(dir);
-        if(chdir("..") != 0) return 1;
-    }while(1);
+    // do{
+    //     int flag = 0;
+    //     DIR* dir = opendir(".");
+    //     if(dir == NULL){
+    //         perror("Cannot open current directory.");
+    //         return 1;
+    //     }
+    //     while((entry = readdir(dir)) != NULL){
+    //         if(entry->d_type == DT_DIR && strcmp(entry->d_name, ".sem") == 0){
+    //             flag = 1;
+    //             break;
+    //         }
+    //     }
+    //     if(flag)
+    //         break;
+    //     closedir(dir);
+    //     if(chdir("..") != 0) return 1;
+    // }while(1);
     FILE *file = fopen(".sem/staging/fileAddress", "r");
     if(file == NULL){
         perror("Cannot open .sem/staging/fileAddress!");
         return 1;
     }
     char line[1000];
+    char *path = realpath(filepath, NULL);
+    if(path == NULL){
+        fprintf(stderr, "Cannot find file with name [%s]", path);
+        return 1;
+    }
     while(fgets(line, sizeof(line), file) != NULL){
         // remove \n
         line[strcspn(line, "\n")] = 0;
 
-        if(strcmp(filepath, line) == 0) return 0;
+        if(strcmp(path, line) == 0) return 0;
     }
     fclose(file);
 
@@ -254,10 +262,6 @@ int add_to_staging(char *filepath){
     if(file_input == NULL){
         perror("Cannot open original file!");
         return 1;
-    }
-    char *path = realpath(filepath, NULL);
-    if(path == NULL){
-        fprintf(stderr, "Cannot find file with name [%s]", filepath);
     }
     fprintf(file, "%s\n", path);
     fclose(file);
@@ -281,7 +285,7 @@ int file_copying(FILE *input, FILE *output){
 #ifdef _DEBUG_
 int main(){
     int argc = 3;
-    char* argv[] = {"sem", "add", "test/text1.txt"};
+    char* argv[] = {"sem", "add", "test"};
 #else
 int main(int argc, char* argv[]){
 #endif
