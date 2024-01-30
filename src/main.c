@@ -114,6 +114,8 @@ int dir_staging(const char* dirname){
     return 0;
 }
 void directory_tree(char *filepath, int max_depth, int curr_depth){
+    if(curr_depth > max_depth)
+        return;
     char path[1000];
     struct dirent *dp;
     DIR *dir = opendir(filepath);
@@ -137,7 +139,7 @@ void directory_tree(char *filepath, int max_depth, int curr_depth){
                     printf("|-- " RED "%s (unstaged)\n" RESET, dp->d_name);
                 }
             }
-            if(dp->d_type == DT_DIR){
+            if(dp->d_type == DT_DIR && strcmp(dp->d_name, ".sem") != 0){
                 printf("|-- %s\n" , dp->d_name);
             directory_tree(path, max_depth, curr_depth + 1);
             }
