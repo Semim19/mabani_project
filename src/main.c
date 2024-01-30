@@ -91,9 +91,6 @@ int isDir(const char* fileName)
     return S_ISREG(path.st_mode);
 }
 int dir_staging(const char* dirname){
-    // char cwd[1000];
-    // if(getcwd(cwd, sizeof(cwd) == NULL)) return 1;
-    // printf("%s\n", cwd);
     DIR *dir = opendir(dirname);
     struct dirent *entry;
     char full_address[1000];
@@ -105,18 +102,14 @@ int dir_staging(const char* dirname){
         strcat(full_address, "/");
         strcat(full_address, entry->d_name);
         if(entry->d_type == DT_DIR){
-            // chdir(dirname);
             dir_staging(full_address);
         }
         strcpy(full_address, dirname);
         strcat(full_address, "/");
         strcat(full_address, entry->d_name);
         if(entry->d_type != DT_DIR){
-            // chdir(dirname);
             add_to_staging(full_address);
         }
-        // strcpy(full_address, dirname);
-        // chdir("..");
     }
     return 0;
 }
@@ -211,25 +204,6 @@ int add_to_staging(char *filepath){
     char cwd[1000];
     if(getcwd(cwd, sizeof(cwd)) == NULL) return 1;
     struct dirent *entry; // pointer to check each file
-    // returning to the directory with .sem
-    // do{
-    //     int flag = 0;
-    //     DIR* dir = opendir(".");
-    //     if(dir == NULL){
-    //         perror("Cannot open current directory.");
-    //         return 1;
-    //     }
-    //     while((entry = readdir(dir)) != NULL){
-    //         if(entry->d_type == DT_DIR && strcmp(entry->d_name, ".sem") == 0){
-    //             flag = 1;
-    //             break;
-    //         }
-    //     }
-    //     if(flag)
-    //         break;
-    //     closedir(dir);
-    //     if(chdir("..") != 0) return 1;
-    // }while(1);
     FILE *file = fopen(".sem/staging/fileAddress", "r");
     if(file == NULL){
         perror("Cannot open .sem/staging/fileAddress!");
