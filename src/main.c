@@ -195,6 +195,7 @@ int run_add(int argc, char* const argv[]){
     return 0;
 }
 int add_to_staging(char *filepath){
+    int flag = 1;
     char *filename = malloc(1000);
     char *filename2 = malloc(1000);
     strcpy(filename2, filepath);
@@ -221,7 +222,10 @@ int add_to_staging(char *filepath){
         // remove \n
         line[strcspn(line, "\n")] = 0;
 
-        if(strcmp(path, line) == 0) return 0;
+        if(strcmp(path, line) == 0){
+            flag = 0;
+            break;
+        }
     }
     fclose(file);
 
@@ -239,7 +243,8 @@ int add_to_staging(char *filepath){
         perror("Cannot open original file!");
         return 1;
     }
-    fprintf(file, "%s\n", path);
+    if(flag)
+        fprintf(file, "%s\n", path);
     fclose(file);
     free(filename);
     free(filename2);
