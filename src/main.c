@@ -19,11 +19,17 @@
 // color define end
 int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
+int run_reset(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
 int file_copying(FILE *input, FILE *output);
 void directory_tree(char *filepath, int max_depth, int curr_depth);
+int check_staged(char *filepath);
+int reseting(char *filepath);
+int removing_file_address(char *fileabs);
+int dir_reseting(const char *filepath);
+
 int check_staged(char *filepath){
     FILE *file = fopen(".sem/staging/fileAddress", "r");
     char line[1000];
@@ -34,7 +40,6 @@ int check_staged(char *filepath){
     }
     return 0;
 }
-
 int run_init(int argc, char* const argv[]){
     // current working directory
     char cwd[1000];
@@ -75,6 +80,7 @@ int run_init(int argc, char* const argv[]){
         chdir(".sem");
         if(mkdir("staging", 0755) != 0) return 1;
         if(mkdir("tracks", 0755) != 0) return 1;
+        if(mkdir("reset", 0755) != 0) return 1;
         chdir(cwd);
         FILE *file = fopen(".sem/staging/fileAddress", "w");
         fclose(file);
@@ -261,12 +267,124 @@ int file_copying(FILE *input, FILE *output){
     fclose(output);
     return 0;
 }
+int dir_reseting(const char* dirname){
+    DIR *dir = opendir(dirname);
+    struct dirent *entry;
+    char full_address[1000];
+    while((entry = readdir(dir)) != NULL){
+        if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
+            continue;
+        }
+        strcpy(full_address, dirname);
+        strcat(full_address, "/");
+        strcat(full_address, entry->d_name);
+        if(entry->d_type == DT_DIR){
+            dir_reseting(full_address);
+        }
+        strcpy(full_address, dirname);
+        strcat(full_address, "/");
+        strcat(full_address, entry->d_name);
+        if(entry->d_type != DT_DIR){
+            reseting(full_address);
+        }
+    }
+    return 0;
+}
+int run_reset(int argc, char* const argv[]){
+    if(argc < 3){
+        perror("Please choose a file!");
+        return 1;
+    }
+    FILE *file = fopen(".sem/reset/fileAddress", "w");
+    if(strcmp(argv[2], "-f") == 0){
+        if(argc < 4){
+            perror("Please choose a file!");
+            return 1;
+        }
+        for(int i = 3; i < argc; i++){
+            if(access(argv[i], F_OK) != 0){
+                perror("File doesn't exist!");
+                return 1;
+            }
+            if(isDir(argv[i]) == 0)
+                dir_reseting(argv[i]);
+            else
+                reseting(argv[i]);
+            
+        }
+        return 0;
+    }
+    else{
+        for(int i = 2; i < argc; i++){
+            if(access(argv[i], F_OK) != 0){
+                perror("File doesn't exist!");
+                return 1;
+            }
+            if(isDir(argv[i]) == 0)
+                dir_reseting(argv[i]);
+            else
+                reseting(argv[i]);
+        }
+    }
+    return 0;
+    
+}
 
+int reseting(char *filepath){
+    char *path = realpath(filepath, F_OK);
+    if(!check_staged){
+        perror("The file is not staged!");
+        return 1;
+    }
+    int flag = 1;
+    char *filename = malloc(1000);
+    char *filename2 = malloc(1000);
+    strcpy(filename2, filepath);
+    strcpy(filename, filepath);
+    while((filename2 = strchr(filename2, '/')) != NULL){
+        filename2++;
+        strcpy(filename, filename2);
+    }
+    char cwd[1000];
+    if(getcwd(cwd, sizeof(cwd)) == NULL) return 1;
+    chdir(".sem/reset");
+    FILE *file = fopen("fileAddress", "a");
+    chdir("../..");
+    fputs(path, file);
+    fputs("\n", file);
+    fclose(file);
+    char command[1000];
+    sprintf(command, "cd .sem && mv staging/%s reset/%s", filename, filename);
+    system(command);
+    removing_file_address(path);
+    return 0;
+}
+
+int removing_file_address(char *fileabs){
+    FILE *file = fopen(".sem/staging/fileAddress", "r");
+    FILE *file2 = fopen(".sem/staging/newfile", "w");
+    char line[1000];
+    while((fgets(line, 1000, file)) != NULL){
+        // remove \n
+        line[strcspn(line, "\n")] = 0;
+        if(strcmp(fileabs, line) != 0){
+            fputs(line, file2);
+            fputs("\n", file2);
+        }
+    }
+    fclose(file);
+    fclose(file2);
+    char cwd[1000];
+    if(getcwd(cwd, sizeof(cwd)) == NULL) return 1;
+    system("cd .sem/staging && rm fileAddress");
+    system("cd .sem/staging && mv newfile fileAddress");
+    return 0;
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
     int argc = 3;
-    char* argv[] = {"sem", "add", "test"};
+    char* argv[] = {"sem", "reset", "test"};
 #else
 int main(int argc, char* argv[]){
 #endif
@@ -279,6 +397,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "add") == 0){
         return run_add(argc, argv);
+    }
+    else if(strcmp(argv[1], "reset") == 0){
+        return run_reset(argc, argv);
     }
     return 0;
 }
