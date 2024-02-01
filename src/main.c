@@ -20,6 +20,7 @@
 int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int run_reset(int argc, char* const argv[]);
+int run_config(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -82,6 +83,7 @@ int run_init(int argc, char* const argv[]){
         if(mkdir("staging", 0755) != 0) return 1;
         if(mkdir("tracks", 0755) != 0) return 1;
         if(mkdir("reset", 0755) != 0) return 1;
+        if(mkdir("config", 0755) != 0) return 1;
         chdir(cwd);
         FILE *file = fopen(".sem/staging/fileAddress", "w");
         fclose(file);
@@ -430,11 +432,55 @@ int removing_file_address(char *fileabs){
     system("cd .sem/staging && mv newfile fileAddress");
     return 0;
 }
+int run_config(int argc, char* const argv[]){
+    int khat = 0;
+    char line[1000];
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    if(strcmp(argv[2], "--global") == 0){
+        char home_path[1000];
+        sprintf(home_path, "%s", getenv("HOME"));
+        chdir(home_path);
+        if(access(".semconfig", F_OK) != 0){
+            mkdir(".semconfig", 0755);
+        }
+        if(strstr(argv[3], "alias") == NULL){
+            if(argc < 5){
+                perror("Enter a valid command!");
+                return 1;
+            }
+            chdir(".semconfig");
+            FILE *file;
+            if(strcmp(argv[3], "user.name") == 0){
+                file = fopen("username", "w");
+                fprintf(file, "%s", argv[4]);
+                fclose(file);
+            }
+            else if(strcmp(argv[3], "user.email") == 0){
+                file = fopen("useremail", "w");
+                fprintf(file, "%s", argv[4]);
+                fclose(file);
+            }
+            else{
+                perror("Enter a valid info");
+                return 1;
+            }
+            
+        }
+    }
+    // else if(argc == 4){
+
+    // }
+    // else{
+    //     perror("Enter a valid command!");
+    //     return 1;
+    // }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
     int argc = 3;
-    char* argv[] = {"sem", "reset", "test"};
+    char* argv[] = {"sem", "config"};
 #else
 int main(int argc, char* argv[]){
 #endif
@@ -450,6 +496,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "reset") == 0){
         return run_reset(argc, argv);
+    }
+    else if(strcmp(argv[1], "config") == 0){
+        return run_config(argc, argv);
     }
     return 0;
 }
