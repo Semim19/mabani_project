@@ -29,6 +29,7 @@ int check_staged(char *filepath);
 int reseting(char *filepath);
 int removing_file_address(char *fileabs);
 int dir_reseting(const char *filepath);
+int adding_file_address(char *fileabs);
 
 int check_staged(char *filepath){
     FILE *file = fopen(".sem/staging/fileAddress", "r");
@@ -157,6 +158,30 @@ void directory_tree(char *filepath, int max_depth, int curr_depth){
 
     closedir(dir);
 }
+int adding_file_address(char *fileabs){
+    FILE *file = fopen(".sem/reset/fileAddress", "r");
+    FILE *file2 = fopen(".sem/staging/fileAddress", "a");
+    FILE *file3 = fopen(".sem/reset/newfile", "w");
+    char line[1000];
+    while((fgets(line, 1000, file)) != NULL){
+        // remove \n
+        line[strcspn(line, "\n")] = 0;
+        if(strcmp(fileabs, line) == 0){
+            fputs(line, file2);
+            fputs("\n", file2);
+        }
+        else{
+            fputs(line, file3);
+            fputs("\n", file3);
+        }
+    }
+    fclose(file);
+    fclose(file2);
+    fclose(file3);
+    system("cd .sem/reset && rm fileAddress");
+    system("cd .sem/reset && mv newfile fileAddress");
+    return 0;
+}
 int run_add(int argc, char* const argv[]){
     if(argc < 3){
         perror("Please choose a file!");
@@ -169,6 +194,27 @@ int run_add(int argc, char* const argv[]){
         }
         int depth = atoi(argv[3]);
         directory_tree(".", depth, 0);
+    }
+    else if(strcmp(argv[2], "-redo") == 0){
+        DIR *dir = opendir(".sem/reset");
+        struct dirent *entry;
+        while((entry = readdir(dir)) != NULL){
+            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, "fileAddress") != 0){
+                char command[1000];
+                sprintf(command, "cd .sem && mv reset/%s staging/%s", entry->d_name, entry->d_name);
+                system(command);
+            }
+        }
+        FILE *file = fopen(".sem/reset/fileAddress", "r");
+        char path[1000];
+        while(fgets(path, 1000, file) != NULL){
+            path[strcspn(path, "\n")] = 0;
+            if(strcmp(path, "=") != 0)
+                adding_file_address(path);
+        }
+        fclose(file);
+        file = fopen(".sem/reset/fileAddress", "w");
+        return 0;
     }
     else if(strcmp(argv[2], "-f") == 0){
         if(argc < 4){
