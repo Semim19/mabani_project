@@ -463,18 +463,41 @@ int run_config(int argc, char* const argv[]){
             }
             else{
                 perror("Enter a valid info");
+                chdir(cwd);
                 return 1;
             }
+            chdir(cwd);
+            return 0;
             
         }
     }
-    // else if(argc == 4){
-
-    // }
-    // else{
-    //     perror("Enter a valid command!");
-    //     return 1;
-    // }
+    else if(argc == 4){
+        if(strstr(argv[3], "alias") == NULL){
+            chdir(".sem/config");
+            FILE *file;
+            if(strcmp(argv[3], "user.name") == 0){
+                file = fopen("username", "w");
+                fprintf(file, "%s", argv[4]);
+                fclose(file);
+            }
+            else if(strcmp(argv[3], "user.email") == 0){
+                file = fopen("useremail", "w");
+                fprintf(file, "%s", argv[4]);
+                fclose(file);
+            }
+            else{
+                perror("Enter a valid info");
+                chdir(cwd);
+                return 1;
+            }
+            chdir(cwd);
+            return 0;
+        }
+    }
+    else{
+        perror("Enter a valid command!");
+        return 1;
+    }
 }
 // #define _DEBUG_
 #ifdef _DEBUG_
