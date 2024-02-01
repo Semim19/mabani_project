@@ -84,6 +84,8 @@ int run_init(int argc, char* const argv[]){
         chdir(cwd);
         FILE *file = fopen(".sem/staging/fileAddress", "w");
         fclose(file);
+        file = fopen(".sem/reset/fileAddress", "w");
+        fclose(file);
     } else {
         perror("sem repo has already been initialized!");
     }
@@ -295,7 +297,9 @@ int run_reset(int argc, char* const argv[]){
         perror("Please choose a file!");
         return 1;
     }
-    FILE *file = fopen(".sem/reset/fileAddress", "w");
+    FILE *file = fopen(".sem/reset/fileAddress", "a");
+    fprintf(file, "=\n");
+    fclose(file);
     if(strcmp(argv[2], "-f") == 0){
         if(argc < 4){
             perror("Please choose a file!");
