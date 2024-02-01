@@ -89,6 +89,8 @@ int run_init(int argc, char* const argv[]){
         fclose(file);
         file = fopen(".sem/reset/fileAddress", "w");
         fclose(file);
+        file = fopen(".sem/config/alias", "w");
+        fclose(file);
     } else {
         perror("sem repo has already been initialized!");
     }
@@ -470,6 +472,23 @@ int run_config(int argc, char* const argv[]){
             return 0;
             
         }
+        else {
+            if(argc < 5){
+                perror("Enter a valid command!");
+                return 1;
+            }
+            char primary_command[100];
+            sscanf(argv[3], "alias.%s", primary_command);
+            chdir(".semconfig");
+            FILE *file;
+            if(access("alias", F_OK) != 0){
+                file = fopen("alias", "w");
+                fclose(file);
+            }
+            file = fopen("alias", "a");
+            fprintf(file, "%s:%s\n", primary_command, argv[4]);
+            fclose(file);
+        }
     }
     else if(argc == 4){
         if(strstr(argv[3], "alias") == NULL){
@@ -492,6 +511,20 @@ int run_config(int argc, char* const argv[]){
             }
             chdir(cwd);
             return 0;
+        }
+        else {
+            char primary_command[100];
+            sscanf(argv[2], "alias.%s", primary_command);
+            chdir(".sem/config");
+            FILE *file;
+            if(access("alias", F_OK) != 0){
+                file = fopen("alias", "w");
+                fclose(file);
+            }
+            file = fopen("alias", "a");
+            fprintf(file, "%s:%s\n", primary_command, argv[3]);
+            fclose(file);
+            chdir(cwd);
         }
     }
     else{
