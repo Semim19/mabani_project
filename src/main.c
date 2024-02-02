@@ -17,6 +17,18 @@
 #define WHT   "\x1B[37m"
 #define RESET "\x1B[0m"
 // color define end
+
+// struct
+typedef struct alias{
+    char ghadimy[51];
+    char jadid[101];
+    struct alias *next;
+} alias;
+//struct end
+
+//functions
+void add_to_list(alias **head, char line[]);
+void add_command(alias **head, char mode[]);
 int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int run_reset(int argc, char* const argv[]);
@@ -32,6 +44,43 @@ int removing_file_address(char *fileabs);
 int dir_reseting(const char *filepath);
 int adding_file_address(char *fileabs);
 
+void add_to_list(alias **head, char line[]){
+    alias *curr = (alias*) malloc(sizeof(alias));
+    char *token;
+    token = strtok(line, ":");
+    int khat = 0;
+    while(token != NULL){
+        if(khat == 0){
+            strcpy(curr->ghadimy, token);
+            khat++;
+        } else {
+            strcpy(curr->jadid, token);
+        }
+        token = strtok(NULL, ":");
+    }
+    if(*head == NULL){
+        *head = curr;
+    } else {
+        alias *temp = *head;
+        while(temp->next != NULL){
+            temp = temp->next;
+        }
+        temp->next = curr;
+    }
+}
+void add_command(alias **head, char mode[]){
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    if(strcmp(mode, "--global") != 0){
+        chdir(".sem/config");
+        FILE *file = fopen("alias", "r");
+        char line[1000];
+        while(fgets(line, 1000, file) != NULL){
+            line[strcspn(line, "\n")] = 0;
+            add_to_list(head, line);
+        }
+    }
+}
 int check_staged(char *filepath){
     FILE *file = fopen(".sem/staging/fileAddress", "r");
     char line[1000];
@@ -543,6 +592,14 @@ int main(int argc, char* argv[]){
     if(argc < 2){
         fprintf(stdout, "Please enter a valid command\n");
         return 1;
+    }
+    alias* local = NULL;
+    alias* global = NULL;
+    add_command(&local, "local");
+    alias* temp = local;
+    while(temp != NULL){
+        printf("%s:%s\n", temp->ghadimy, temp->jadid);
+        temp = temp->next;
     }
     if(strcmp(argv[1], "init") == 0){
         return run_init(argc, argv);
