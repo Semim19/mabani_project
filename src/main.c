@@ -43,6 +43,7 @@ int reseting(char *filepath);
 int removing_file_address(char *fileabs);
 int dir_reseting(const char *filepath);
 int adding_file_address(char *fileabs);
+int run_set_message(int argc, char* const argv[]);
 
 void add_to_list(alias **head, char line[]){
     alias *curr = (alias*) malloc(sizeof(alias));
@@ -159,7 +160,10 @@ int run_init(int argc, char* const argv[]){
         fclose(file);
         file = fopen(".sem/config/alias", "w");
         fclose(file);
+        file = fopen(".sem/config/message", "w");
+        fclose(file);
         file = fopen(".sem/tracks", "w");
+        fclose(file);
     } else {
         perror("sem repo has already been initialized!");
     }
@@ -615,6 +619,15 @@ int run_config(int argc, char* const argv[]){
         return 1;
     }
 }
+
+int run_set_message(int argc, char* const argv[]){
+    if(argc < 6 || strcmp(argv[2], "-m") != 0 || strcmp(argv[4], "-s") != 0){
+        perror("Invalid input!");
+        return 1;
+    }
+    FILE *file = fopen(".sem/config/message", "a");
+    fprintf(file, "%s:%s\n", argv[5], argv[3]);
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -640,6 +653,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "config") == 0){
         return run_config(argc, argv);
+    }
+    else if(strcmp(argv[1], "set") == 0){
+        return run_set_message(argc, argv);
     }
     else{
         alias* local = NULL;
