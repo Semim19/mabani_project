@@ -45,6 +45,7 @@ int dir_reseting(const char *filepath);
 int adding_file_address(char *fileabs);
 int run_set_message(int argc, char* const argv[]);
 int remove_message(int argc, char* const argv[]);
+int replace_message(int argc, char* const argv[]);
 
 void add_to_list(alias **head, char line[]){
     alias *curr = (alias*) malloc(sizeof(alias));
@@ -629,6 +630,30 @@ int run_set_message(int argc, char* const argv[]){
     FILE *file = fopen(".sem/config/message", "a");
     fprintf(file, "%s:%s\n", argv[5], argv[3]);
 }
+int replace_message(int argc, char* const argv[]){
+    if(argc < 6 || strcmp(argv[2], "-m") != 0 || strcmp(argv[4], "-s") != 0){
+        perror("Invalid input!");
+        return 1;
+    }
+    char shortcut[100];
+    strcpy(shortcut, argv[5]);
+    strcat(shortcut, ":");
+    FILE *file = fopen(".sem/config/message", "r");
+    FILE *file2 = fopen(".sem/config/random", "w");
+    char line[1000];
+    while(fgets(line, 1000, file) != NULL){
+        if(strstr(line, shortcut) == NULL){
+            fprintf(file2, "%s", line);
+        } else {
+            fprintf(file2, "%s:%s", argv[5], argv[3]);
+        }
+    }
+    fclose(file);
+    fclose(file2);
+    system("cd .sem/config && rm message");
+    system("cd .sem/config && mv random message");
+    return 0;
+}
 int remove_message(int argc, char* const argv[]){
     if(argc < 4 || strcmp(argv[2], "-s") != 0){
         perror("Invalid input!");
@@ -648,6 +673,8 @@ int remove_message(int argc, char* const argv[]){
             exist = 1;
         }
     }
+    fclose(file);
+    fclose(file2);
     system("cd .sem/config && rm message");
     system("cd .sem/config && mv random message");
     if(exist == 0){
@@ -687,6 +714,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "remove") == 0){
         return remove_message(argc, argv);
+    }
+    else if(strcmp(argv[1], "replace") == 0){
+        return replace_message(argc, argv);
     }
     else{
         alias* local = NULL;
