@@ -491,17 +491,17 @@ int run_config(int argc, char* const argv[]){
         }
     }
     else if(argc == 4){
-        if(strstr(argv[3], "alias") == NULL){
+        if(strstr(argv[2], "alias") == NULL){
             chdir(".sem/config");
             FILE *file;
-            if(strcmp(argv[3], "user.name") == 0){
+            if(strcmp(argv[2], "user.name") == 0){
                 file = fopen("username", "w");
-                fprintf(file, "%s", argv[4]);
+                fprintf(file, "%s", argv[3]);
                 fclose(file);
             }
-            else if(strcmp(argv[3], "user.email") == 0){
+            else if(strcmp(argv[2], "user.email") == 0){
                 file = fopen("useremail", "w");
-                fprintf(file, "%s", argv[4]);
+                fprintf(file, "%s", argv[3]);
                 fclose(file);
             }
             else{
