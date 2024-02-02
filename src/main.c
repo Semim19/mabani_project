@@ -29,6 +29,7 @@ typedef struct alias{
 //functions
 void add_to_list(alias **head, char line[]);
 void add_command(alias **head, char mode[]);
+void add_message(alias **head);
 int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int run_reset(int argc, char* const argv[]);
@@ -69,6 +70,16 @@ void add_to_list(alias **head, char line[]){
             temp = temp->next;
         }
         temp->next = curr;
+    }
+}
+void add_message(alias **head){
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    FILE *file = fopen(".sem/config/message", "r");
+    char line[1000];
+    while(fgets(line, 1000, file) != NULL){
+        line[strcspn(line, "\n")] = 0;
+        add_to_list(head, line);
     }
 }
 void add_command(alias **head, char mode[]){
@@ -693,6 +704,8 @@ int main(int argc, char* argv[]){
 #endif
     char cwd[1000];
     getcwd(cwd, sizeof(cwd));
+    alias* message = NULL;
+    // add_message(&message);
     if(argc < 2){
         fprintf(stdout, "Please enter a valid command\n");
         return 1;
