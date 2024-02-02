@@ -79,6 +79,26 @@ void add_command(alias **head, char mode[]){
             line[strcspn(line, "\n")] = 0;
             add_to_list(head, line);
         }
+        chdir(cwd);
+        return;
+    } else {
+        char path[1000];
+        sprintf(path, "%s", getenv("HOME"));
+        chdir(path);
+        if(access(".semconfig", F_OK) != 0)
+            return;
+        chdir(".semconfig");
+        if(access("alias", F_OK) != 0)
+            return;
+        FILE *file = fopen("alias", "r");
+        char line[1000];
+        while(fgets(line, 1000, file) != NULL){
+            line[strcspn(line, "\n")] = 0;
+            add_to_list(head, line);
+        }
+        chdir(cwd);
+        return;
+
     }
 }
 int check_staged(char *filepath){
@@ -585,21 +605,15 @@ int run_config(int argc, char* const argv[]){
 #ifdef _DEBUG_
 int main(){
     int argc = 3;
-    char* argv[] = {"sem", "config"};
+    char* argv[] = {"sem", "add", "test"};
 #else
 int main(int argc, char* argv[]){
 #endif
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
     if(argc < 2){
         fprintf(stdout, "Please enter a valid command\n");
         return 1;
-    }
-    alias* local = NULL;
-    alias* global = NULL;
-    add_command(&local, "local");
-    alias* temp = local;
-    while(temp != NULL){
-        printf("%s:%s\n", temp->ghadimy, temp->jadid);
-        temp = temp->next;
     }
     if(strcmp(argv[1], "init") == 0){
         return run_init(argc, argv);
@@ -612,6 +626,33 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "config") == 0){
         return run_config(argc, argv);
+    }
+    else{
+        alias* local = NULL;
+        alias* global = NULL;
+        add_command(&local, "local");
+        add_command(&global, "--global");
+        alias* temp;
+        temp = local;
+        while(temp != NULL){
+            if(strcmp(temp->ghadimy, argv[1]) == 0){
+                chdir(cwd);
+                system(temp->jadid);
+                return 0;
+            }
+            temp = temp->next;
+        }
+        temp = global;
+        while(temp != NULL){
+            if(strcmp(temp->ghadimy, argv[1]) == 0){
+                chdir(cwd);
+                system(temp->jadid);
+                return 0;
+            }
+            temp = temp->next;
+        }
+        perror("Enter a valid command!");
+        return 1;
     }
     return 0;
 }
