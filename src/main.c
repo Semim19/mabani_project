@@ -44,6 +44,7 @@ int removing_file_address(char *fileabs);
 int dir_reseting(const char *filepath);
 int adding_file_address(char *fileabs);
 int run_set_message(int argc, char* const argv[]);
+int remove_message(int argc, char* const argv[]);
 
 void add_to_list(alias **head, char line[]){
     alias *curr = (alias*) malloc(sizeof(alias));
@@ -628,6 +629,33 @@ int run_set_message(int argc, char* const argv[]){
     FILE *file = fopen(".sem/config/message", "a");
     fprintf(file, "%s:%s\n", argv[5], argv[3]);
 }
+int remove_message(int argc, char* const argv[]){
+    if(argc < 4 || strcmp(argv[2], "-s") != 0){
+        perror("Invalid input!");
+        return 1;
+    }
+    char shortcut[100];
+    strcpy(shortcut, argv[3]);
+    strcat(shortcut, ":");
+    FILE *file = fopen(".sem/config/message", "r");
+    FILE *file2 = fopen(".sem/config/random", "w");
+    int exist = 0;
+    char line[1000];
+    while(fgets(line, 1000, file) != NULL){
+        if(strstr(line, shortcut) == NULL){
+            fprintf(file2, "%s", line);
+        } else {
+            exist = 1;
+        }
+    }
+    system("cd .sem/config && rm message");
+    system("cd .sem/config && mv random message");
+    if(exist == 0){
+        perror("Shortcut does not exist!");
+        return 1;
+    }
+    return 0;
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -656,6 +684,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "set") == 0){
         return run_set_message(argc, argv);
+    }
+    else if(strcmp(argv[1], "remove") == 0){
+        return remove_message(argc, argv);
     }
     else{
         alias* local = NULL;
