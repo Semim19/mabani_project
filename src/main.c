@@ -150,7 +150,6 @@ int run_init(int argc, char* const argv[]){
         if(mkdir(".sem", 0755) != 0) return 1;
         chdir(".sem");
         if(mkdir("staging", 0755) != 0) return 1;
-        if(mkdir("tracks", 0755) != 0) return 1;
         if(mkdir("reset", 0755) != 0) return 1;
         if(mkdir("config", 0755) != 0) return 1;
         chdir(cwd);
@@ -160,6 +159,7 @@ int run_init(int argc, char* const argv[]){
         fclose(file);
         file = fopen(".sem/config/alias", "w");
         fclose(file);
+        file = fopen(".sem/tracks", "w");
     } else {
         perror("sem repo has already been initialized!");
     }
@@ -323,6 +323,7 @@ int run_add(int argc, char* const argv[]){
 }
 int add_to_staging(char *filepath){
     int flag = 1;
+    int flag2 = 1;
     char *filename = malloc(1000);
     char *filename2 = malloc(1000);
     strcpy(filename2, filepath);
@@ -355,8 +356,19 @@ int add_to_staging(char *filepath){
         }
     }
     fclose(file);
+    file = fopen(".sem/tracks", "r");
+    while(fgets(line, sizeof(line), file) != NULL){
+        // remove \n
+        line[strcspn(line, "\n")] = 0;
 
+        if(strcmp(path, line) == 0){
+            flag2 = 0;
+            break;
+        }
+    }
+    fclose(file);
     file = fopen(".sem/staging/fileAddress", "a");
+    FILE *file2 = fopen(".sem/tracks", "a");
     if(file == NULL) return 1;
     if(chdir(".sem/staging") != 0) return 1;
     FILE *file_output = fopen(filename, "w");
@@ -372,6 +384,8 @@ int add_to_staging(char *filepath){
     }
     if(flag)
         fprintf(file, "%s\n", path);
+    if(flag2)
+        fprintf(file2, "%s\n", path);
     fclose(file);
     free(filename);
     free(filename2);
