@@ -484,6 +484,16 @@ int run_reset(int argc, char* const argv[]){
             free(filename2);
             free(filename);
         }
+        fclose(replace);
+        FILE *file = fopen(".sem/reset/rand", "r");
+        FILE *file2 = fopen(".sem/staging/fileAddress", "a");
+        while((fgets(line, 1000, file)) != NULL){
+            // remove \n
+            line[strcspn(line, "\n")] = 0;
+            fprintf(file2, "%s\n", line);
+        }
+        fclose(file);
+        fclose(file2);
         FILE *rand = fopen(".sem/reset/rand2", "w");
         reset = fopen(".sem/reset/fileAddress", "r");
         int counter = 0;
@@ -497,6 +507,8 @@ int run_reset(int argc, char* const argv[]){
             }
             fprintf(rand, "%s", line);
         }
+        fclose(rand);
+        fclose(reset);
         remove(".sem/reset/rand");
         remove(".sem/reset/fileAddress");
         system("mv .sem/reset/rand2 .sem/reset/fileAddress");
