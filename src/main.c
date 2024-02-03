@@ -447,6 +447,61 @@ int run_reset(int argc, char* const argv[]){
         perror("Please choose a file!");
         return 1;
     }
+    if(strcmp(argv[2], "-undo") == 0){
+        FILE *reset = fopen(".sem/reset/fileAddress", "r");
+        FILE *replace = fopen(".sem/reset/rand", "w");
+        int chand = 0;
+        char line[1000];
+        while(fgets(line, 1000, reset) != NULL){
+            if(strcmp(line, "=\n") == 0){
+                fclose(replace);
+                replace = fopen(".sem/reset/rand", "w");
+                chand++;
+            }
+            fprintf(replace, "%s", line);
+        }
+        fclose(reset);
+        fclose(replace);
+        replace = fopen(".sem/reset/rand", "r");
+        while(fgets(line, 1000, replace) != NULL){
+            if(strcmp(line, "=\n") == 0){
+                continue;
+            }
+            line[strcspn(line, "\n")] = 0;
+            int flag = 1;
+            int flag2 = 1;
+            char *filename = malloc(1000);
+            char *filename2 = malloc(1000);
+            strcpy(filename2, line);
+            strcpy(filename, line);
+            while((filename2 = strchr(filename2, '/')) != NULL){
+                filename2++;
+                strcpy(filename, filename2);
+            }
+            char command[1000];
+            sprintf(command, "mv .sem/reset/%s .sem/staging/%s", filename, filename);
+            system(command);
+            free(filename2);
+            free(filename);
+        }
+        FILE *rand = fopen(".sem/reset/rand2", "w");
+        reset = fopen(".sem/reset/fileAddress", "r");
+        int counter = 0;
+        while(1){
+            fgets(line, 1000, reset);
+            if(strcmp(line, "=\n") == 0){
+                counter++;
+                if(counter >= chand){
+                    break;
+                }
+            }
+            fprintf(rand, "%s", line);
+        }
+        remove(".sem/reset/rand");
+        remove(".sem/reset/fileAddress");
+        system("mv .sem/reset/rand2 .sem/reset/fileAddress");
+        return 0;
+    }
     FILE *file = fopen(".sem/reset/fileAddress", "a");
     fprintf(file, "=\n");
     fclose(file);
@@ -698,7 +753,7 @@ int remove_message(int argc, char* const argv[]){
 #ifdef _DEBUG_
 int main(){
     int argc = 3;
-    char* argv[] = {"sem", "add", "test"};
+    char* argv[] = {"sem", "reset", "-undo"};
 #else
 int main(int argc, char* argv[]){
 #endif
