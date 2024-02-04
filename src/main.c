@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 
 // color define
 #define RED   "\x1B[31m"
@@ -47,7 +48,18 @@ int adding_file_address(char *fileabs);
 int run_set_message(int argc, char* const argv[]);
 int remove_message(int argc, char* const argv[]);
 int replace_message(int argc, char* const argv[]);
+int compare_date(char *file1, char *file2);
 
+int compare_date(char *file1, char *file2){
+    struct stat attr1;
+    struct stat attr2;
+    stat(file1, &attr1);
+    stat(file2, &attr2);
+    if(attr1.st_mtime > attr2.st_mtime){
+        return 1;
+    }
+    return 0;
+}
 void add_to_list(alias **head, char line[]){
     alias *curr = (alias*) malloc(sizeof(alias));
     char *token;
@@ -189,7 +201,7 @@ int run_init(int argc, char* const argv[]){
         file = fopen(".sem/state", "w");
         fprintf(file, "%s", "HEAD");
         fclose(file);
-        file = fopen(".sem/branched/master", "w");
+        file = fopen(".sem/branches/master", "w");
         fclose(file);
     } else {
         perror("sem repo has already been initialized!");
