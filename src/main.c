@@ -28,7 +28,8 @@ typedef struct alias{
 //struct end
 
 //functions
-int get_username(char *name);
+int get_username(char name[]);
+int get_useremail(char email[]);
 void add_to_list(alias **head, char line[]);
 void add_command(alias **head, char mode[]);
 void add_message(alias **head);
@@ -52,7 +53,49 @@ int replace_message(int argc, char* const argv[]);
 int run_commit(int argc, char* const argv[]);
 int compare_date(char *file1, char *file2);
 
-int get_username(char name[]){
+int get_useremail(char email[]){
+    FILE *file = fopen(".sem/config/useremail", "r");
+    char configpath[1000];
+    sprintf(configpath, "%s", getenv("HOME"));
+    strcat(configpath, "/.semconfig/useremail");
+    FILE *file2 = fopen(configpath, "r");
+    if(file == NULL && file2 == NULL){
+        perror("Please config your useremail!");
+        return 1;
+    }
+    char line[1000];
+    if(file == NULL){
+        fgets(line, 1000, file2);
+        line[strcspn(line, "\n")] = 0;
+        strcpy(email, line);
+        fclose(file);
+        fclose(file2);
+        return 0;
+    }
+    if(file2 == NULL){
+        fgets(line, 1000, file);
+        line[strcspn(line, "\n")] = 0;
+        strcpy(email, line);
+        fclose(file);
+        fclose(file2);
+        return 0;
+    }
+    if(compare_date(".sem/config/useremail", configpath)){
+        fgets(line, 1000, file);
+        line[strcspn(line, "\n")] = 0;
+        strcpy(email, line);
+        fclose(file);
+        fclose(file2);
+        return 0;
+    } else {
+        fgets(line, 1000, file2);
+        line[strcspn(line, "\n")] = 0;
+        strcpy(email, line);
+        fclose(file);
+        fclose(file2);
+        return 0;
+    }
+}int get_username(char name[]){
     FILE *file = fopen(".sem/config/username", "r");
     char configpath[1000];
     sprintf(configpath, "%s", getenv("HOME"));
@@ -67,27 +110,33 @@ int get_username(char name[]){
         fgets(line, 1000, file2);
         line[strcspn(line, "\n")] = 0;
         strcpy(name, line);
+        fclose(file);
+        fclose(file2);
         return 0;
     }
     if(file2 == NULL){
         fgets(line, 1000, file);
         line[strcspn(line, "\n")] = 0;
         strcpy(name, line);
+        fclose(file);
+        fclose(file2);
         return 0;
     }
     if(compare_date(".sem/config/username", configpath)){
         fgets(line, 1000, file);
         line[strcspn(line, "\n")] = 0;
         strcpy(name, line);
+        fclose(file);
+        fclose(file2);
         return 0;
     } else {
         fgets(line, 1000, file2);
         line[strcspn(line, "\n")] = 0;
         strcpy(name, line);
+        fclose(file);
+        fclose(file2);
         return 0;
     }
-    fclose(file);
-    fclose(file2);
 }
 int compare_date(char *file1, char *file2){
     struct stat attr1;
@@ -845,9 +894,9 @@ int run_commit(int argc, char* const argv[]){
     }
     fclose(file);
     char username[1000];
-    if(get_username(username) != 0){
-        return 1;
-    }
+    char useremail[1000];
+    if(get_username(username) != 0)     return 1;
+    if(get_useremail(useremail) != 0)   return 1;
     file = fopen(".sem/staging/fileAddress", "r");
     if(fgets(line, 1000, file) == NULL){
         perror("Staging area is empty!");
