@@ -89,6 +89,9 @@ void add_message(alias **head){
     char cwd[1000];
     getcwd(cwd, sizeof(cwd));
     FILE *file = fopen(".sem/config/message", "r");
+    if(file == NULL){
+        return;
+    }
     char line[1000];
     while(fgets(line, 1000, file) != NULL){
         line[strcspn(line, "\n")] = 0;
@@ -800,7 +803,28 @@ int run_commit(int argc, char* const argv[]){
         fclose(file);
         return 1;
     }
-
+    fclose(file);
+    char message[1000] = "-1";
+    if(strcmp(argv[2], "-m") == 0){
+        strcpy(message, argv[3]);
+    }
+    else if(strcmp(argv[2], "-s") == 0){
+        alias* payam = NULL;
+        add_message(&payam);
+        while(payam != NULL){
+            if(strcmp(payam->ghadimy, argv[3]) == 0){
+                strcpy(message, payam->jadid);
+                break;
+            }
+            payam = payam->next;
+        }
+        if(strcmp(message, "-1") == 0){
+            perror("Invalid shortcut message!");
+            return 1;
+        }
+    }
+    printf("%s", message);
+    return 0;
 }
 
 // #define _DEBUG_
@@ -813,8 +837,6 @@ int main(int argc, char* argv[]){
 #endif
     char cwd[1000];
     getcwd(cwd, sizeof(cwd));
-    alias* message = NULL;
-    // add_message(&message);
     if(argc < 2){
         fprintf(stdout, "Please enter a valid command\n");
         return 1;
