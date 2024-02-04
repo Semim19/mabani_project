@@ -796,8 +796,16 @@ int run_commit(int argc, char* const argv[]){
         perror("Enter a valid command!");
         return 1;
     }
-    FILE *file = fopen(".sem/staging/fileAddress", "r");
     char line[1000];
+    FILE *file = fopen(".sem/state", "r");
+    if(fgets(line, 1000, file) != NULL){
+        line[strcspn(line, "\n")] = 0;
+        if(strcmp(line, "HEAD") != 0){
+            perror("You are not at HEAD, you can not commit!");
+            return 1;
+        }
+    }
+    file = fopen(".sem/staging/fileAddress", "r");
     if(fgets(line, 1000, file) == NULL){
         perror("Staging area is empty!");
         fclose(file);
@@ -823,7 +831,6 @@ int run_commit(int argc, char* const argv[]){
             return 1;
         }
     }
-    printf("%s", message);
     return 0;
 }
 
