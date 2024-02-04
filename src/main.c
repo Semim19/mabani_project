@@ -48,6 +48,7 @@ int adding_file_address(char *fileabs);
 int run_set_message(int argc, char* const argv[]);
 int remove_message(int argc, char* const argv[]);
 int replace_message(int argc, char* const argv[]);
+int run_commit(int argc, char* const argv[]);
 int compare_date(char *file1, char *file2);
 
 int compare_date(char *file1, char *file2){
@@ -787,6 +788,21 @@ int remove_message(int argc, char* const argv[]){
     }
     return 0;
 }
+int run_commit(int argc, char* const argv[]){
+    if(argc != 4 || (strcmp(argv[2], "-m") != 0 && strcmp(argv[2], "-s") != 0)){
+        perror("Enter a valid command!");
+        return 1;
+    }
+    FILE *file = fopen(".sem/staging/fileAddress", "r");
+    char line[1000];
+    if(fgets(line, 1000, file) == NULL){
+        perror("Staging area is empty!");
+        fclose(file);
+        return 1;
+    }
+
+}
+
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -823,6 +839,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "replace") == 0){
         return replace_message(argc, argv);
+    }
+    else if(strcmp(argv[1], "commit") == 0){
+        return run_commit(argc, argv);
     }
     else{
         alias* local = NULL;
