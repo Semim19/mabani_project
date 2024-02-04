@@ -28,6 +28,7 @@ typedef struct alias{
 //struct end
 
 //functions
+int inc_last_commit_ID();
 int get_username(char name[]);
 int get_useremail(char email[]);
 void add_to_list(alias **head, char line[]);
@@ -876,6 +877,12 @@ int remove_message(int argc, char* const argv[]){
     return 0;
 }
 int run_commit(int argc, char* const argv[]){
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    char branch[1000];
+    int curr_id;
+    int prev_id;
+    char message[1000] = "-1";
     if(argc != 4 || (strcmp(argv[2], "-m") != 0 && strcmp(argv[2], "-s") != 0)){
         perror("Enter a valid command!");
         return 1;
@@ -901,7 +908,6 @@ int run_commit(int argc, char* const argv[]){
         return 1;
     }
     fclose(file);
-    char message[1000] = "-1";
     if(strcmp(argv[2], "-m") == 0){
         strcpy(message, argv[3]);
     }
@@ -920,12 +926,14 @@ int run_commit(int argc, char* const argv[]){
             return 1;
         }
     }
+    if(strlen(message) > 73){
+        perror("Message is too long!");
+        return 1;
+    }
     file = fopen(".sem/currbranch", "r");
-    char branch[1000];
     fgets(branch, 1000, file);
     branch[strcspn(branch, "\n")] = 0;
     fclose(file);
-    int prev_id;
     char branchpath[1000];
     strcpy(branchpath, ".sem/branches/");
     DIR *dir = opendir(".sem/branches");
@@ -939,6 +947,8 @@ int run_commit(int argc, char* const argv[]){
     file = fopen(branchpath, "r");
     fscanf(file, "%d\n", &prev_id);
     fclose(file);
+    curr_id = inc_last_commit_ID();
+
     return 0;
 }
 int inc_last_commit_ID() {
