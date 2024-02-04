@@ -68,7 +68,6 @@ int get_useremail(char email[]){
         fgets(line, 1000, file2);
         line[strcspn(line, "\n")] = 0;
         strcpy(email, line);
-        fclose(file);
         fclose(file2);
         return 0;
     }
@@ -77,7 +76,6 @@ int get_useremail(char email[]){
         line[strcspn(line, "\n")] = 0;
         strcpy(email, line);
         fclose(file);
-        fclose(file2);
         return 0;
     }
     if(compare_date(".sem/config/useremail", configpath)){
@@ -110,7 +108,6 @@ int get_useremail(char email[]){
         fgets(line, 1000, file2);
         line[strcspn(line, "\n")] = 0;
         strcpy(name, line);
-        fclose(file);
         fclose(file2);
         return 0;
     }
@@ -119,7 +116,6 @@ int get_useremail(char email[]){
         line[strcspn(line, "\n")] = 0;
         strcpy(name, line);
         fclose(file);
-        fclose(file2);
         return 0;
     }
     if(compare_date(".sem/config/username", configpath)){
@@ -929,7 +925,20 @@ int run_commit(int argc, char* const argv[]){
     fgets(branch, 1000, file);
     branch[strcspn(branch, "\n")] = 0;
     fclose(file);
-
+    int prev_id;
+    char branchpath[1000];
+    strcpy(branchpath, ".sem/branches/");
+    DIR *dir = opendir(".sem/branches");
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL){
+        if(strcmp(entry->d_name, branch) == 0){
+            strcat(branchpath, entry->d_name);
+            break;
+        }
+    }
+    file = fopen(branchpath, "r");
+    fscanf(file, "%d\n", &prev_id);
+    fclose(file);
     return 0;
 }
 int inc_last_commit_ID() {
@@ -957,8 +966,8 @@ int inc_last_commit_ID() {
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
-    int argc = 3;
-    char* argv[] = {"sem", "reset", "-undo"};
+    int argc = 4;
+    char* argv[] = {"sem", "commit", "-m", "bikhasiat"};
 #else
 int main(int argc, char* argv[]){
 #endif
