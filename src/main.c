@@ -284,7 +284,7 @@ int run_init(int argc, char* const argv[]){
         file = fopen(".sem/tracks", "w");
         fclose(file);
         file = fopen(".sem/lastid", "w");
-        fprintf(file, "%d", 0);
+        fprintf(file, "%d\n", 0);
         fclose(file);
         file = fopen(".sem/currbranch", "w");
         fprintf(file, "%s", "master");
@@ -293,6 +293,7 @@ int run_init(int argc, char* const argv[]){
         fprintf(file, "%s", "HEAD");
         fclose(file);
         file = fopen(".sem/branches/master", "w");
+        fprintf(file, "%d\n", 0);
         fclose(file);
     } else {
         perror("sem repo has already been initialized!");
@@ -923,7 +924,34 @@ int run_commit(int argc, char* const argv[]){
             return 1;
         }
     }
+    file = fopen(".sem/currbranch", "r");
+    char branch[1000];
+    fgets(branch, 1000, file);
+    branch[strcspn(branch, "\n")] = 0;
+    fclose(file);
+
     return 0;
+}
+int inc_last_commit_ID() {
+    FILE *file = fopen(".sem/lastid", "r");
+    if (file == NULL) return -1;
+    
+    FILE *tmp_file = fopen(".sem/tmp_config", "w");
+    if (tmp_file == NULL) return -1;
+
+    int last_commit_ID;
+    char line[1000];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        sscanf(line, "%d\n", &last_commit_ID);
+        last_commit_ID++;
+        fprintf(tmp_file, "%d\n", last_commit_ID);
+    }
+    fclose(file);
+    fclose(tmp_file);
+
+    remove(".sem/lastid");
+    rename(".sem/tmp_config", ".sem/lastid");
+    return last_commit_ID;
 }
 
 // #define _DEBUG_
