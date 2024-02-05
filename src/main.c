@@ -28,6 +28,7 @@ typedef struct alias{
 //struct end
 
 //functions
+int makeName(char filename[], char filepath[]);
 int inc_last_commit_ID();
 int get_username(char name[]);
 int get_useremail(char email[]);
@@ -54,6 +55,17 @@ int replace_message(int argc, char* const argv[]);
 int run_commit(int argc, char* const argv[]);
 int compare_date(char *file1, char *file2);
 
+int makeName(char filename[], char filepath[]){
+    char *filename2 = malloc(1000);
+    strcpy(filename2, filepath);
+    strcpy(filename, filepath);
+    while((filename2 = strchr(filename2, '/')) != NULL){
+        filename2++;
+        strcpy(filename, filename2);
+    }
+    free(filename2);
+    return 0;
+}
 int get_useremail(char email[]){
     FILE *file = fopen(".sem/config/useremail", "r");
     char configpath[1000];
@@ -995,6 +1007,7 @@ int run_commit(int argc, char* const argv[]){
     struct tm *localTime = localtime(&currtime);
     fprintf(timedate, "%s\n", asctime(localTime));
     fclose(timedate);
+
     return 0;
 }
 int inc_last_commit_ID() {
