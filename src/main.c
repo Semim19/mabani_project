@@ -973,7 +973,8 @@ int run_commit(int argc, char* const argv[]){
         chdir(cwd);
     } else {
         char command[1000];
-        sprintf(command, "cp -r .sem/commits/%s .sem/commits/%s", prevID, ID);
+        sprintf(command, "cp -r %s %s", prevID, ID);
+        system(command);
         chdir(ID);
         FILE *prev = fopen("previd", "w");
         fprintf(prev, "%d", prev_id);
@@ -1007,7 +1008,65 @@ int run_commit(int argc, char* const argv[]){
     struct tm *localTime = localtime(&currtime);
     fprintf(timedate, "%s\n", asctime(localTime));
     fclose(timedate);
+    chdir(cwd);
+    chdir(".sem/staging");
+    DIR *secdir = opendir(".");
+    struct dirent *secentry;
+    while((secentry = readdir(secdir)) != NULL){
+        if(strcmp(secentry->d_name, ".") != 0 && strcmp(secentry->d_name, "..") != 0 && strcmp(secentry->d_name, "fileAddress") != 0){
+            char command[1000];
+            sprintf(command, "mv -f %s ../commits/%s/%s", secentry->d_name, ID, secentry->d_name);
+            system(command);
+        }
+    }
+    file = fopen("fileAddress", "w");
+    fclose(file);
+    chdir("..");
+    FILE *trackings = fopen("tracks", "r");
+    char path[1000];
+    while(fgets(path, 1000, trackings)){
+        path[strcspn(path, "\n")] = 0;
+        char name[1000];
+        makeName(name, path);
+        char newpath[2000];
+        sprintf(newpath, "commits/%s/%s", ID, name);
+        if(access(path, F_OK) != 0){
+            remove(newpath);
+            FILE *trackings2 = fopen("tracks", "r");
+            FILE *finaltrack = fopen("tmp_track", "w");
+            while(fgets(line, 1000, trackings2) != NULL){
+                line[strcspn(line, "\n")] = 0;
+                if(strcmp(line, path) != 0){
+                    fprintf(finaltrack, "%s\n", line);
+                }
+            }
+            fclose(trackings2);
+            fclose(finaltrack);
+            remove("tracks");
+            rename("tmp_track", "tracks");
+        }
+    }
+    fclose(trackings);
+    char command[1000];
+    sprintf(command, "cp -f %s commits/%s/%s", "tracks", ID, "tracks");
+    system(command);
 
+    chdir("commits");
+    chdir(ID);
+    int count = 0;
+    FILE *numfiles = fopen("numfiles", "w");
+    DIR *newdir = opendir(".");
+    struct dirent *newentry;
+    while((newentry = readdir(newdir)) != NULL){
+        if(strcmp(newentry->d_name, ".") != 0 && strcmp(newentry->d_name, "..") != 0){
+            count++;
+        }
+    }
+    count -= 7;
+    fprintf(numfiles, "%d", count);
+    fclose(numfiles);
+    chdir(cwd);
+    printf("commit with ID: %d\n Date and Time: %s\n Message: %s", curr_id, asctime(localTime), message);
     return 0;
 }
 int inc_last_commit_ID() {
@@ -1036,7 +1095,7 @@ int inc_last_commit_ID() {
 #ifdef _DEBUG_
 int main(){
     int argc = 4;
-    char* argv[] = {"sem", "commit", "-m", "bikhasiat"};
+    char* argv[] = {"sem", "commit", "-m", "mavad"};
 #else
 int main(int argc, char* argv[]){
 #endif
