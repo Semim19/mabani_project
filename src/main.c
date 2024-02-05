@@ -1547,6 +1547,13 @@ int run_revert(int argc, char* const argv[]){
             return 1;
         }
         chdir(cwd);
+        char path[500];
+        strcpy(path, ".sem/branches/");
+        strcat(path, branch);
+        int lastid;
+        file = fopen(path, "r");
+        fscanf(file, "%d", &lastid);
+        fclose(file);
         int id = inc_last_commit_ID();
         char ID[20];
         sprintf(ID, "%d", id);
@@ -1554,14 +1561,20 @@ int run_revert(int argc, char* const argv[]){
         char command[2000];
         sprintf(command, "cp -r %s %s", argv[2], ID);
         system(command);
+        chdir(ID);
+        file = fopen("previd", "w");
+        fprintf(file, "%d", lastid);
+        fclose(file);
         chdir(cwd);
-        char path[500];
-        strcpy(path, ".sem/branches/");
-        strcat(path, branch);
         file = fopen(path, "w");
         fprintf(file, "%d", id);
         fclose(file);
         char* const tmp[] = {"sem", "checkout", ID};
+        run_checkout(3, tmp);
+        return 0;
+    }
+    if(argc == 4 && strcmp(argv[2], "-n") == 0){
+        char* const tmp[] = {"sem", "checkout", argv[3]};
         run_checkout(3, tmp);
         return 0;
     }
