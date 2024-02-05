@@ -1516,9 +1516,31 @@ int run_log(int argc, char* const argv[]){
 }
 int run_revert(int argc, char* const argv[]){
     if(argc == 3){
+        char heb_id[20];
+        if(strstr(argv[2], "HEAD-") != NULL){
+            int count = 0;
+            sscanf(argv[2], "HEAD-%d", &count);
+            char branch3[1000];
+            FILE *file = fopen(".sem/currbranch", "r");
+            fscanf(file, "%s", branch3);
+            branch3[strcspn(branch3, "\n")] = 0;
+            fclose(file);
+            char heb_path[1000];
+            strcpy(heb_path, ".sem/branches/");
+            strcat(heb_path, branch3);
+            file = fopen(heb_path, "r");
+            fscanf(file, "%s", heb_id);
+            heb_id[strcspn(heb_id, "\n")] = 0;
+            fclose(file);
+            for(int i = 0; i < count; i++){
+                previdfind(heb_id);
+            }
+        } else {
+            strcpy(heb_id, argv[2]);
+        }
         char cwd[1000];
         getcwd(cwd, sizeof(cwd));
-        if(!isNum(argv[2])){
+        if(!isNum(heb_id)){
             perror("Enter a valid id");
             return 1;
         }
@@ -1537,7 +1559,7 @@ int run_revert(int argc, char* const argv[]){
         branch[strcspn(branch, "\n")] = 0;
         fclose(file);
         chdir(".sem/commits");
-        chdir(argv[2]);
+        chdir(heb_id);
         file = fopen("Branch", "r");
         fscanf(file, "%s", branch2);
         branch2[strcspn(branch2, "\n")] = 0;
@@ -1559,7 +1581,7 @@ int run_revert(int argc, char* const argv[]){
         sprintf(ID, "%d", id);
         chdir(".sem/commits");
         char command[2000];
-        sprintf(command, "cp -r %s %s", argv[2], ID);
+        sprintf(command, "cp -r %s %s", heb_id, ID);
         system(command);
         chdir(ID);
         file = fopen("previd", "w");
@@ -1578,6 +1600,7 @@ int run_revert(int argc, char* const argv[]){
         run_checkout(3, tmp);
         return 0;
     }
+
 }
 // #define _DEBUG_
 #ifdef _DEBUG_
