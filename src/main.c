@@ -1195,6 +1195,35 @@ int run_branch(int argc, char* const argv[]){
     }
 }
 int checkoutid(char ID[]){
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    char currbranch[1000];
+    char line[1000];
+    FILE *file = fopen(".sem/config/fileAddress", "r");
+    int flag = 0;
+    while(fgets(line, 1000, file) != NULL){
+        flag = 1;
+    }
+    if(flag){
+        perror("Your staging area must be empty to checkout!");
+        return 1;
+    }
+    fclose(file);
+    file = fopen(".sem/currbranch", "r");
+    fscanf(file, "%s", currbranch);
+    fclose(file);
+    currbranch[strcspn(currbranch, "\n")] = 0;
+    chdir(".sem/commits");
+    chdir(ID);
+    file = fopen("Branch", "r");
+    char tmp_branch[1000];
+    fscanf(file, "%s", tmp_branch);
+    tmp_branch[strcspn(tmp_branch, "\n")] = 0;
+    fclose(file);
+    if(strcmp(currbranch, tmp_branch) != 0){
+        perror("Checkout to the branch first, then checkout to the commit");
+        return 1;
+    }
     return 0;
 }
 int run_checkout(int argc, char* const argv[]){
@@ -1257,6 +1286,10 @@ int run_checkout(int argc, char* const argv[]){
         }
         fscanf(branch, "%s", ID);
         ID[strcspn(ID, "\n")] = 0;
+        fclose(branch);
+        branch = fopen(".sem/currbranch", "w");
+        fprintf(branch, "%s", branchname);
+        fclose(branch);
         return checkoutid(ID);
     }
 }
