@@ -39,6 +39,7 @@ int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int run_reset(int argc, char* const argv[]);
 int run_config(int argc, char* const argv[]);
+int run_branch(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -1090,7 +1091,21 @@ int inc_last_commit_ID() {
     rename(".sem/tmp_config", ".sem/lastid");
     return last_commit_ID;
 }
-
+int run_branch(int argc, char* const argv[]){
+    if(argc > 3){
+        perror("Invalid input!");
+        return 1;
+    }
+    if(argc == 2){
+        DIR *dir = opendir("./.sem/branches");
+        struct dirent *entry;
+        while((entry = readdir(dir)) != NULL){
+            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+                printf("%s\n", entry->d_name);
+        }
+        return 0;
+    }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -1128,6 +1143,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "commit") == 0){
         return run_commit(argc, argv);
+    }
+    else if(strcmp(argv[1], "branch") == 0){
+        return run_branch(argc, argv);
     }
     else{
         alias* local = NULL;
