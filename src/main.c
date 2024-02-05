@@ -1377,9 +1377,11 @@ void show_info(char id[]){
     fclose(file);
     printf("commit id: %s\n", id);
     printf("done by: %s\n", name);
+    printf("message: %s\n", message);
     printf("date: %s\n", date);
     printf("branch: %s\n", branch);
     printf("number of commited files: %s\n", nums);
+    printf("---------\n");
 }
 int run_log(int argc, char* const argv[]){
     char cwd[2000];
@@ -1478,6 +1480,31 @@ int run_log(int argc, char* const argv[]){
                 name[strcspn(name, ",")] = 0;
                 if(strcmp(name, argv[3]) == 0)
                     show_info(ID);
+                fclose(file);
+                chdir("..");
+            }
+            chdir(cwd);
+            return 0;
+        }
+        else if(strcmp(argv[2], "-word") == 0){
+            char ID[20];
+            FILE *file = fopen(".sem/lastid", "r");
+            fgets(ID, 20, file);
+            fclose(file);
+            ID[strcspn(ID, "\n")] = 0;
+            int id = atoi(ID);
+            chdir(".sem/commits");
+            for(int i = id; i > 0; i--){
+                sprintf(ID, "%d", i);
+                ID[strcspn(ID, "\n")] = 0;
+                chdir(ID);
+                FILE *file = fopen("message", "r");
+                char line[1000];
+                fgets(line, 1000, file);
+                if(strstr(line, argv[3]) != NULL)
+                    show_info(ID);
+                fclose(file);
+                chdir("..");
             }
             chdir(cwd);
             return 0;
