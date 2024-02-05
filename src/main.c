@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+#include <ctype.h>
 
 // color define
 #define RED   "\x1B[31m"
@@ -28,6 +29,8 @@ typedef struct alias{
 //struct end
 
 //functions
+void previdfind(char id[]);
+int isNum(char reshte[]);
 int makeName(char filename[], char filepath[]);
 int inc_last_commit_ID();
 int get_username(char name[]);
@@ -39,6 +42,7 @@ int run_init(int argc, char* const argv[]);
 int run_add(int argc, char* const argv[]);
 int run_reset(int argc, char* const argv[]);
 int run_config(int argc, char* const argv[]);
+int run_checkout(int argc, char* const argv[]);
 int run_branch(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
@@ -55,7 +59,30 @@ int remove_message(int argc, char* const argv[]);
 int replace_message(int argc, char* const argv[]);
 int run_commit(int argc, char* const argv[]);
 int compare_date(char *file1, char *file2);
+int checkoutid(char ID[]);
 
+void previdfind(char id[]){
+    char tmp[20];
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    chdir(".sem/commits");
+    chdir(id);
+    FILE *file = fopen("previd", "r");
+    fscanf(file, "%s", tmp);
+    fclose(file);
+    tmp[strcspn(tmp, "\n")] = 0;
+    strcpy(id, tmp);
+    chdir(cwd);
+    return;
+}
+int isNum(char reshte[]){
+    int x = strlen(reshte);
+    for(int i = 0; i < x; i++){
+        if(!isdigit(reshte[i]))
+        return 0;
+    }
+    return 1;
+}
 int makeName(char filename[], char filepath[]){
     char *filename2 = malloc(1000);
     strcpy(filename2, filepath);
@@ -1167,6 +1194,72 @@ int run_branch(int argc, char* const argv[]){
         return 0;
     }
 }
+int checkoutid(char ID[]){
+    return 0;
+}
+int run_checkout(int argc, char* const argv[]){
+    if(argc > 3){
+        perror("Invalid input!");
+        return 1;
+    }
+    if(isNum(argv[2])){
+        return checkoutid(argv[2]);
+    }
+    else if(strcmp(argv[2], "HEAD") == 0){
+        char ID[20];
+        char namebranch[1000];
+        FILE *branch = fopen(".sem/currbranch", "r");
+        fscanf(branch, "%s", namebranch);
+        fclose(branch);
+        namebranch[strcspn(namebranch, "\n")] = 0;
+        char path[1000];
+        strcpy(path, ".sem/branches/");
+        strcat(path, namebranch);
+        FILE *mammad = fopen(path, "r");
+        fscanf(mammad, "%s", ID);
+        ID[strcspn(ID, "\n")] = 0;
+        fclose(mammad);
+        return checkoutid(ID);
+    }
+    else if(strstr(argv[2], "HEAD-") != NULL){
+        char cwd[1000];
+        getcwd(cwd, sizeof(cwd));
+        int count = 0;
+        sscanf(argv[2], "HEAD-%d", &count);
+        char ID[20];
+        char namebranch[1000];
+        FILE *branch = fopen(".sem/currbranch", "r");
+        fscanf(branch, "%s", namebranch);
+        fclose(branch);
+        namebranch[strcspn(namebranch, "\n")] = 0;
+        char path[1000];
+        strcpy(path, ".sem/branches/");
+        strcat(path, namebranch);
+        FILE *mammad = fopen(path, "r");
+        fscanf(mammad, "%s", ID);
+        ID[strcspn(ID, "\n")] = 0;
+        fclose(mammad);
+        for(int i = 0; i < count; i++){
+            previdfind(ID);
+        }
+        return checkoutid(ID);
+    } else {
+        char ID[20];
+        char branchname[1000];
+        strcpy(branchname, argv[2]);
+        char path[1000];
+        strcpy(path, ".sem/branches/");
+        strcat(path, branchname);
+        FILE *branch = fopen(path, "r");
+        if(branch == NULL){
+            perror("No such branch exists!");
+            return 1;
+        }
+        fscanf(branch, "%s", ID);
+        ID[strcspn(ID, "\n")] = 0;
+        return checkoutid(ID);
+    }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -1207,6 +1300,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "branch") == 0){
         return run_branch(argc, argv);
+    }
+    else if(strcmp(argv[1], "checkout") == 0){
+        return run_checkout(argc, argv);
     }
     else{
         alias* local = NULL;
