@@ -1191,7 +1191,7 @@ int run_branch(int argc, char* const argv[]){
         fprintf(branch, "%d", curr_id);
         fclose(branch);
         chdir("..");
-        branch = fopen("lasid", "w");
+        branch = fopen("lastid", "w");
         fprintf(branch, "%d", curr_id);
         fclose(branch);
         chdir(cwd);
@@ -1225,6 +1225,7 @@ int checkoutid(char ID[]){
         fclose(file);
         return 1;
     }
+    fclose(file);
     file = fopen(".sem/currbranch", "r");
     fscanf(file, "%s", currbranch);
     fclose(file);
@@ -1513,21 +1514,58 @@ int run_log(int argc, char* const argv[]){
         return 0;
     }
 }
-// int run_revert(int argc, char* const argv[]){
-//     if(argc == 3){
-//         if(!isNum(argv[2])){
-//             perror("Enter a valid id");
-//             return 1;
-//         }
-//         FILE *file = fopen(".sem/staging/fileAddress", "r");
-//         if(file != NULL){
-//             perror("Your staging area must be empty!");
-//             fclose(file);
-//             return 1;
-//         }
-//         file = fopen(".sem/staging/")
-//     }
-// }
+int run_revert(int argc, char* const argv[]){
+    if(argc == 3){
+        char cwd[1000];
+        getcwd(cwd, sizeof(cwd));
+        if(!isNum(argv[2])){
+            perror("Enter a valid id");
+            return 1;
+        }
+        char line[1000];
+        FILE *file = fopen(".sem/staging/fileAddress", "r");
+        if(fgets(line, 1000, file) != NULL){
+            perror("Your staging area must be empty!");
+            fclose(file);
+            return 1;
+        }
+        fclose(file);
+        char branch[1000];
+        char branch2[1000];
+        file = fopen(".sem/currbranch", "r");
+        fscanf(file, "%s", branch);
+        branch[strcspn(branch, "\n")] = 0;
+        fclose(file);
+        chdir(".sem/commits");
+        chdir(argv[2]);
+        file = fopen("Branch", "r");
+        fscanf(file, "%s", branch2);
+        branch2[strcspn(branch2, "\n")] = 0;
+        fclose(file);
+        if(strcmp(branch2, branch) != 0){
+            perror("You are not on the same branch!");
+            return 1;
+        }
+        chdir(cwd);
+        int id = inc_last_commit_ID();
+        char ID[20];
+        sprintf(ID, "%d", id);
+        chdir(".sem/commits");
+        char command[2000];
+        sprintf(command, "cp -r %s %s", argv[2], ID);
+        system(command);
+        chdir(cwd);
+        char path[500];
+        strcpy(path, ".sem/branches/");
+        strcat(path, branch);
+        file = fopen(path, "w");
+        fprintf(file, "%d", id);
+        fclose(file);
+        char* const tmp[] = {"sem", "checkout", ID};
+        run_checkout(3, tmp);
+        return 0;
+    }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -1575,9 +1613,9 @@ int main(int argc, char* argv[]){
     else if(strcmp(argv[1], "log") == 0){
         return run_log(argc, argv);
     }
-    // else if(strcmp(argv[1], "revert") == 0){
-    //     return run_revert(argc, argv);
-    // }
+    else if(strcmp(argv[1], "revert") == 0){
+        return run_revert(argc, argv);
+    }
     else{
         alias* local = NULL;
         alias* global = NULL;
