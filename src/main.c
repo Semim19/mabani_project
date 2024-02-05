@@ -1104,6 +1104,16 @@ int run_branch(int argc, char* const argv[]){
                 printf("%s\n", entry->d_name);
         }
         return 0;
+    } else {
+        DIR *dir = opendir("./.sem/branches");
+        struct dirent *entry;
+        while((entry = readdir(dir)) != NULL){
+            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+                if(strcmp(entry->d_name, argv[2]) == 0){
+                    perror("Branch already exists!");
+                    return 1;
+                }
+        }
     }
 }
 // #define _DEBUG_
