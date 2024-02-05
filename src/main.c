@@ -29,6 +29,7 @@ typedef struct alias{
 //struct end
 
 //functions
+void show_info(char id[]);
 void previdfind(char id[]);
 int isHEAD(char id[], char branch[]);
 int isNum(char reshte[]);
@@ -1345,6 +1346,39 @@ int run_checkout(int argc, char* const argv[]){
         fclose(branch);
         return checkoutid(ID);
     }
+}
+void show_info(char id[]){
+    chdir(id);
+    char message[100];
+    char date[500];
+    char name[1000];
+    char branch[1000];
+    char nums[10];
+    FILE *file = fopen("message", "r");
+    fscanf(file, "%s", message);
+    message[strcspn(message, "\n")] = 0;
+    fclose(file);
+    file = fopen("time", "r");
+    fscanf(file, "%s", date);
+    date[strcspn(date, "\n")] = 0;
+    fclose(file);
+    file = fopen("userinfo", "r");
+    fscanf(file, "%s", name);
+    name[strcspn(name, "\n")] = 0;
+    fclose(file);
+    file = fopen("Branch", "r");
+    fscanf(file, "%s", branch);
+    branch[strcspn(branch, "\n")] = 0;
+    fclose(file);
+    file = fopen("numfiles", "r");
+    fscanf(file, "%s", nums);
+    nums[strcspn(nums, "\n")] = 0;
+    fclose(file);
+    printf("commit id: %s\n", id);
+    printf("done by: %s\n", name);
+    printf("date: %s\n", date);
+    printf("branch: %s\n", branch);
+    printf("number of commited files: %s\n", nums);
 }
 // #define _DEBUG_
 #ifdef _DEBUG_
