@@ -1486,30 +1486,30 @@ int run_log(int argc, char* const argv[]){
             chdir(cwd);
             return 0;
         }
-        else if(strcmp(argv[2], "-word") == 0){
-            char ID[20];
-            FILE *file = fopen(".sem/lastid", "r");
-            fgets(ID, 20, file);
-            fclose(file);
+    }
+    else if(strcmp(argv[2], "-word") == 0){
+        char ID[20];
+        FILE *file = fopen(".sem/lastid", "r");
+        fgets(ID, 20, file);
+        fclose(file);
+        ID[strcspn(ID, "\n")] = 0;
+        int id = atoi(ID);
+        chdir(".sem/commits");
+        for(int i = id; i > 0; i--){
+            sprintf(ID, "%d", i);
             ID[strcspn(ID, "\n")] = 0;
-            int id = atoi(ID);
-            chdir(".sem/commits");
-            for(int i = id; i > 0; i--){
-                sprintf(ID, "%d", i);
-                ID[strcspn(ID, "\n")] = 0;
-                chdir(ID);
-                FILE *file = fopen("message", "r");
-                char line[1000];
-                fgets(line, 1000, file);
-                if(strstr(line, argv[3]) != NULL)
+            chdir(ID);
+            FILE *file = fopen("message", "r");
+            char line[1000];
+            fgets(line, 1000, file);
+            for(int i = 3; i < argc; i++)
+                if(strstr(line, argv[i]) != NULL)
                     show_info(ID);
-                fclose(file);
-                chdir("..");
-            }
-            chdir(cwd);
-            return 0;
+            fclose(file);
+            chdir("..");
         }
-
+        chdir(cwd);
+        return 0;
     }
 }
 // #define _DEBUG_
