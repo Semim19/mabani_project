@@ -30,6 +30,7 @@ typedef struct alias{
 
 //functions
 void previdfind(char id[]);
+int isHEAD(char id[], char branch[]);
 int isNum(char reshte[]);
 int makeName(char filename[], char filepath[]);
 int inc_last_commit_ID();
@@ -1194,6 +1195,18 @@ int run_branch(int argc, char* const argv[]){
         return 0;
     }
 }
+int isHEAD(char id[], char branch[]){
+    char path[1000];
+    char tmp[20];
+    strcpy(path, ".sem/branches/");
+    strcat(path, branch);
+    FILE *file = fopen(path, "r");
+    fscanf(file, "%s", tmp);
+    tmp[strcspn(tmp, "\n")] = 0;
+    if(strcmp(tmp, id) == 0)
+        return 1;
+    return 0;
+}
 int checkoutid(char ID[]){
     char cwd[1000];
     getcwd(cwd, sizeof(cwd));
@@ -1201,14 +1214,14 @@ int checkoutid(char ID[]){
     char line[1000];
     FILE *file = fopen(".sem/config/fileAddress", "r");
     int flag = 0;
-    while(fgets(line, 1000, file) != NULL){
-        flag = 1;
+    if(file == NULL){
+        flag = 0;
     }
     if(flag){
         perror("Your staging area must be empty to checkout!");
+        fclose(file);
         return 1;
     }
-    fclose(file);
     file = fopen(".sem/currbranch", "r");
     fscanf(file, "%s", currbranch);
     fclose(file);
@@ -1224,6 +1237,46 @@ int checkoutid(char ID[]){
         perror("Checkout to the branch first, then checkout to the commit");
         return 1;
     }
+    file = fopen("tracks", "r");
+    FILE *tracks = fopen("../../tracks", "r");
+    char satr[2000];
+    while(fgets(satr, 2000, file) != NULL){
+        satr[strcspn(satr, "\n")] = 0;
+        char filename[1000];
+        makeName(filename, satr);
+        // printf(GRN "%s\n%s\n" RESET, filename, satr);
+        char command[5000];
+        sprintf(command, "cp -f %s %s", filename, satr);
+        system(command);
+    }
+    rewind(file);
+    while(fgets(satr, 2000, tracks) != NULL){
+        satr[strcspn(satr, "\n")] = 0;
+        char line2[2000];
+        int removed = 1;
+        while(fgets(line2, 2000, file) != NULL){
+            line2[strcspn(line2, "\n")] = 0;
+            if(strcmp(satr, line2) == 0){
+                removed = 0;
+                break;
+            }
+        }
+        if(removed == 1)
+            remove(satr);
+    }
+    fclose(file);
+    fclose(tracks);
+    system("cp -f tracks ../../tracks");
+    chdir(cwd);
+    if(isHEAD(ID, currbranch)){
+        file = fopen(".sem/state", "w");
+        fprintf(file, "HEAD");
+        fclose(file);
+        return 0;
+    }
+    file = fopen(".sem/state", "w");
+    fprintf(file, "unHEAD");
+    fclose(file);
     return 0;
 }
 int run_checkout(int argc, char* const argv[]){
@@ -1296,8 +1349,8 @@ int run_checkout(int argc, char* const argv[]){
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
-    int argc = 4;
-    char* argv[] = {"sem", "commit", "-m", "mavad"};
+    int argc = 3;
+    char* argv[] = {"sem", "checkout", "1"};
 #else
 int main(int argc, char* argv[]){
 #endif
