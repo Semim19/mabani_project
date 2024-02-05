@@ -1067,7 +1067,7 @@ int run_commit(int argc, char* const argv[]){
     fprintf(numfiles, "%d", count);
     fclose(numfiles);
     chdir(cwd);
-    printf("commit with ID: %d\n Date and Time: %s\n Message: %s", curr_id, asctime(localTime), message);
+    printf("commit with ID: %d\nDate and Time: %sMessage: %s\n", curr_id, asctime(localTime), message);
     return 0;
 }
 int inc_last_commit_ID() {
@@ -1097,14 +1097,25 @@ int run_branch(int argc, char* const argv[]){
         return 1;
     }
     if(argc == 2){
+        char name[1000];
+        FILE *file = fopen(".sem/currbranch", "r");
+        fscanf(file, "%s", name);
+        name[strcspn(name, "\n")] = 0;
         DIR *dir = opendir("./.sem/branches");
         struct dirent *entry;
         while((entry = readdir(dir)) != NULL){
-            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
-                printf("%s\n", entry->d_name);
+            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
+                if(strcmp(name, entry->d_name) == 0){
+                    printf(GRN "* %s\n" RESET, name);
+                } else {
+                    printf("%s\n", entry->d_name);
+                }
+            }
         }
         return 0;
     } else {
+        char cwd[1000];
+        getcwd(cwd, sizeof(cwd));
         DIR *dir = opendir("./.sem/branches");
         struct dirent *entry;
         while((entry = readdir(dir)) != NULL){
@@ -1114,6 +1125,46 @@ int run_branch(int argc, char* const argv[]){
                     return 1;
                 }
         }
+        int curr_id;
+        char ID[20];
+        int prev_id;
+        char prevID[20];
+        char prev_branch[100];
+        curr_id = inc_last_commit_ID();
+        if(curr_id == 1){
+            perror("Commit at least once before creating a branch!");
+            return 1;
+        }
+        FILE *last_branch = fopen(".sem/currbranch", "r");
+        fscanf(last_branch, "%s", prev_branch);
+        fclose(last_branch);
+        prev_branch[strcspn(prev_branch, "\n")] = 0;
+        char last_branch_path[1000];
+        strcpy(last_branch_path, ".sem/branches/");
+        strcat(last_branch_path, prev_branch);
+        FILE *file = fopen(last_branch_path, "r");
+        fscanf(file, "%d", &prev_id);
+        fclose(file);
+        sprintf(prevID, "%d", prev_id);
+        sprintf(ID, "%d", curr_id);
+        char command[1000];
+        sprintf(command, "cp -r .sem/commits/%s .sem/commits/%s", prevID, ID);
+        system(command);
+        chdir(".sem/commits");
+        chdir(ID);
+        FILE *branch = fopen("Branch", "w");
+        fprintf(branch, "%s", argv[2]);
+        fclose(branch);
+        chdir("../../branches");
+        branch = fopen(argv[2], "w");
+        fprintf(branch, "%d", curr_id);
+        fclose(branch);
+        chdir("..");
+        branch = fopen("lasid", "w");
+        fprintf(branch, "%d", curr_id);
+        fclose(branch);
+        chdir(cwd);
+        return 0;
     }
 }
 // #define _DEBUG_
