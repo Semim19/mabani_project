@@ -47,6 +47,7 @@ int run_config(int argc, char* const argv[]);
 int run_checkout(int argc, char* const argv[]);
 int run_branch(int argc, char* const argv[]);
 int run_log(int argc, char* const argv[]);
+int run_revert(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -1214,10 +1215,10 @@ int checkoutid(char ID[]){
     getcwd(cwd, sizeof(cwd));
     char currbranch[1000];
     char line[1000];
-    FILE *file = fopen(".sem/config/fileAddress", "r");
+    FILE *file = fopen(".sem/staging/fileAddress", "r");
     int flag = 0;
-    if(file == NULL){
-        flag = 0;
+    while(fgets(line, 1000, file) != NULL){
+        flag = 1;
     }
     if(flag){
         perror("Your staging area must be empty to checkout!");
@@ -1512,6 +1513,21 @@ int run_log(int argc, char* const argv[]){
         return 0;
     }
 }
+// int run_revert(int argc, char* const argv[]){
+//     if(argc == 3){
+//         if(!isNum(argv[2])){
+//             perror("Enter a valid id");
+//             return 1;
+//         }
+//         FILE *file = fopen(".sem/staging/fileAddress", "r");
+//         if(file != NULL){
+//             perror("Your staging area must be empty!");
+//             fclose(file);
+//             return 1;
+//         }
+//         file = fopen(".sem/staging/")
+//     }
+// }
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -1559,6 +1575,9 @@ int main(int argc, char* argv[]){
     else if(strcmp(argv[1], "log") == 0){
         return run_log(argc, argv);
     }
+    // else if(strcmp(argv[1], "revert") == 0){
+    //     return run_revert(argc, argv);
+    // }
     else{
         alias* local = NULL;
         alias* global = NULL;
