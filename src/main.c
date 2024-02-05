@@ -46,6 +46,7 @@ int run_reset(int argc, char* const argv[]);
 int run_config(int argc, char* const argv[]);
 int run_checkout(int argc, char* const argv[]);
 int run_branch(int argc, char* const argv[]);
+int run_log(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -1355,23 +1356,23 @@ void show_info(char id[]){
     char branch[1000];
     char nums[10];
     FILE *file = fopen("message", "r");
-    fscanf(file, "%s", message);
+    fgets(message, 100, file);
     message[strcspn(message, "\n")] = 0;
     fclose(file);
     file = fopen("time", "r");
-    fscanf(file, "%s", date);
+    fgets(date, 500, file);
     date[strcspn(date, "\n")] = 0;
     fclose(file);
     file = fopen("userinfo", "r");
-    fscanf(file, "%s", name);
+    fgets(name, 1000, file);
     name[strcspn(name, "\n")] = 0;
     fclose(file);
     file = fopen("Branch", "r");
-    fscanf(file, "%s", branch);
+    fgets(branch, 1000, file);
     branch[strcspn(branch, "\n")] = 0;
     fclose(file);
     file = fopen("numfiles", "r");
-    fscanf(file, "%s", nums);
+    fgets(nums, 10, file);
     nums[strcspn(nums, "\n")] = 0;
     fclose(file);
     printf("commit id: %s\n", id);
@@ -1379,6 +1380,24 @@ void show_info(char id[]){
     printf("date: %s\n", date);
     printf("branch: %s\n", branch);
     printf("number of commited files: %s\n", nums);
+}
+int run_log(int argc, char* const argv[]){
+    char cwd[2000];
+    getcwd(cwd, sizeof(cwd));
+    if(argc == 2){
+        char ID[20];
+        FILE *file = fopen(".sem/lastid", "r");
+        fgets(ID, 20, file);
+        fclose(file);
+        ID[strcspn(ID, "\n")] = 0;
+        int id = atoi(ID);
+        chdir(".sem/commits");
+        for(int i = id; i > 0; i--){
+            sprintf(ID, "%d", i);
+            ID[strcspn(ID, "\n")] = 0;
+            show_info(ID);
+        }
+    }
 }
 // #define _DEBUG_
 #ifdef _DEBUG_
@@ -1423,6 +1442,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "checkout") == 0){
         return run_checkout(argc, argv);
+    }
+    else if(strcmp(argv[1], "log") == 0){
+        return run_log(argc, argv);
     }
     else{
         alias* local = NULL;
