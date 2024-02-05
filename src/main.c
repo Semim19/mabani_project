@@ -883,6 +883,10 @@ int run_commit(int argc, char* const argv[]){
     int curr_id;
     int prev_id;
     char message[1000] = "-1";
+    char username[1000];
+    char useremail[1000];
+    char ID[20];
+    char prevID[20];
     if(argc != 4 || (strcmp(argv[2], "-m") != 0 && strcmp(argv[2], "-s") != 0)){
         perror("Enter a valid command!");
         return 1;
@@ -897,8 +901,6 @@ int run_commit(int argc, char* const argv[]){
         }
     }
     fclose(file);
-    char username[1000];
-    char useremail[1000];
     if(get_username(username) != 0)     return 1;
     if(get_useremail(useremail) != 0)   return 1;
     file = fopen(".sem/staging/fileAddress", "r");
@@ -948,7 +950,42 @@ int run_commit(int argc, char* const argv[]){
     fscanf(file, "%d\n", &prev_id);
     fclose(file);
     curr_id = inc_last_commit_ID();
-
+    sprintf(ID, "%d", curr_id);
+    sprintf(prevID, "%d", prev_id);
+    chdir(".sem/commits");
+    if(prev_id == 0){
+        if(mkdir(ID, 0755) != 0){
+            perror("Cannot make the first directory!");
+            return 1;
+        }
+        chdir(cwd);
+    } else {
+        char command[1000];
+        sprintf(command, "cp -r .sem/commits/%s .sem/commits/%s", prevID, ID);
+        chdir(ID);
+        FILE *prev = fopen("previd", "w");
+        fprintf(prev, "%d", prev_id);
+        fclose(prev);
+        chdir(cwd);
+    }
+    char tmp_path[1000];
+    strcpy(tmp_path, ".sem/branches/");
+    strcat(tmp_path, branch);
+    file = fopen(tmp_path, "w");
+    fprintf(file, "%d", curr_id);
+    fclose(file);
+    chdir(".sem/commits");
+    chdir(ID);
+    file = fopen("Branch", "w");
+    fprintf(file, "%s", branch);
+    fclose(file);
+    file = fopen("userinfo", "w");
+    fprintf(file, "%s, %s", username, useremail);
+    fclose(file);
+    file = fopen("message", "w");
+    fprintf(file, "%s", message);
+    fclose(file);
+    chdir(cwd);
     return 0;
 }
 int inc_last_commit_ID() {
