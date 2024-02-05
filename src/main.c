@@ -1397,6 +1397,29 @@ int run_log(int argc, char* const argv[]){
             ID[strcspn(ID, "\n")] = 0;
             show_info(ID);
         }
+        chdir(cwd);
+        return 0;
+    }
+    if(argc == 4){
+        if(strcmp(argv[2], "-n") == 0){
+            char ID[20];
+            FILE *file = fopen(".sem/lastid", "r");
+            fgets(ID, 20, file);
+            fclose(file);
+            ID[strcspn(ID, "\n")] = 0;
+            int id = atoi(ID);
+            chdir(".sem/commits");
+            int count = atoi(argv[3]);
+            for(int i = id; i > id - count; i--){
+                sprintf(ID, "%d", i);
+                ID[strcspn(ID, "\n")] = 0;
+                show_info(ID);
+            }
+            chdir(cwd);
+            return 0;
+        }
+        
+
     }
 }
 // #define _DEBUG_
