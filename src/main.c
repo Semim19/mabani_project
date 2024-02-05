@@ -985,7 +985,16 @@ int run_commit(int argc, char* const argv[]){
     file = fopen("message", "w");
     fprintf(file, "%s", message);
     fclose(file);
-    chdir(cwd);
+    FILE *timedate = fopen("time", "w");
+    FILE *timebin = fopen("time.bin", "wb");
+    time_t currtime;
+    time(&currtime);
+    fwrite(&currtime, sizeof(time_t), 1, timebin);
+    fclose(timebin);
+
+    struct tm *localTime = localtime(&currtime);
+    fprintf(timedate, "%s\n", asctime(localTime));
+    fclose(timedate);
     return 0;
 }
 int inc_last_commit_ID() {
