@@ -1418,7 +1418,48 @@ int run_log(int argc, char* const argv[]){
             chdir(cwd);
             return 0;
         }
-        
+        else if(strcmp(argv[2], "-branch") == 0){
+            chdir(".sem/branches");
+            DIR *dir = opendir(".");
+            struct dirent *entry;
+            int exist = 0;
+            while((entry = readdir(dir)) != NULL){
+                if(strcmp(entry->d_name, argv[3]) == 0){
+                    exist = 1;
+                    break;
+                }
+            }
+            if(exist == 0){
+                perror("Enter a valid branch!");
+                return 1;
+            }
+            chdir("../..");
+            char ID[20];
+            FILE *file = fopen(".sem/lastid", "r");
+            fgets(ID, 20, file);
+            fclose(file);
+            ID[strcspn(ID, "\n")] = 0;
+            int id = atoi(ID);
+            chdir(".sem/commits");
+            while(1){
+                show_info(ID);
+                if(strcmp(ID, "1") == 0){
+                    break;
+                }
+                previdfind(ID);
+                chdir(ID);
+                FILE *file = fopen("Branch", "r");
+                char branch[1000];
+                fscanf(file, "%s", branch);
+                branch[strcspn(branch, "\n")] = 0;
+                fclose(file);
+                if(strcmp(argv[3], branch) != 0)
+                    break;
+                chdir("..");
+            }
+            chdir(cwd);
+            return 0;
+        }
 
     }
 }
