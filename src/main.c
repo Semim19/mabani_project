@@ -1286,7 +1286,7 @@ int checkoutid(char ID[]){
         return 0;
     }
     file = fopen(".sem/state", "w");
-    fprintf(file, "unHEAD");
+    fprintf(file, "%s", ID);
     fclose(file);
     return 0;
 }
