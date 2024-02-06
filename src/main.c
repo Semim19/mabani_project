@@ -1038,6 +1038,14 @@ int run_commit(int argc, char* const argv[]){
         perror("Message is too long!");
         return 1;
     }
+    FILE *tmp = fopen(".sem/hookstatus", "r");
+    int adad = 0;
+    fscanf(tmp, "%d", &adad);
+    fclose(tmp);
+    if(adad == 0){
+        perror("Fix the pre-commits!");
+        return 1;
+    }
     file = fopen(".sem/currbranch", "r");
     fgets(branch, 1000, file);
     branch[strcspn(branch, "\n")] = 0;
@@ -1892,8 +1900,20 @@ int run_pre(int argc, char* const argv[]){
                 fclose(file);
             }
         }
+        chdir(cwd);
+        if(problem){
+            FILE *tmp = fopen(".sem/hookstatus", "w");
+            fprintf(tmp, "%d", 0);
+            fclose(tmp);
+        }
         return 0;
 
+    }
+    if(strcmp(argv[2], "fix") == 0){
+        FILE *tmp = fopen(".sem/hookstatus", "w");
+        fprintf(tmp, "%d", 1);
+        fclose(tmp);
+        return 0;
     }
     if(strcmp(argv[2], "hooks") == 0 && strcmp(argv[3], "list") == 0){
         printf("todo-check\n");
