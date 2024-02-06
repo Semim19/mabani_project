@@ -1849,25 +1849,25 @@ int run_pre(int argc, char* const argv[]){
                     hook[strcspn(hook, "\n")] = 0;
                     if(strcmp(hook, "character-limit") == 0){
                         if(strstr(entry->d_name, ".txt") == NULL && strstr(entry->d_name, ".c") == NULL){
-                            printf("%s.........................." YEL "SKIPPED" RESET, hook);
+                            printf("%s.........................." YEL "SKIPPED\n" RESET, hook);
                         }
                         int tedad = 0;
                         FILE *ajab = fopen(entry->d_name, "r");
                         tedad = charcount(ajab);
                         if(tedad > 20000){
-                            printf("%s.........................." RED "FAILED" RESET, hook);
+                            printf("%s.........................." RED "FAILED\n" RESET, hook);
                             problem = 1;
                         } else {
-                            printf("%s.........................." GRN "PASSED" RESET, hook);
+                            printf("%s.........................." GRN "PASSED\n" RESET, hook);
                         }
                     }
                     else if(strcmp(hook, "file-size-check") == 0){
                         unsigned int size = fsize(entry->d_name);
                         if(size > 5242880){
-                            printf("%s.........................." RED "FAILED" RESET, hook);
+                            printf("%s.........................." RED "FAILED\n" RESET, hook);
                             problem = 1;
                         } else {
-                            printf("%s.........................." GRN "PASSED" RESET, hook);
+                            printf("%s.........................." GRN "PASSED\n" RESET, hook);
                         }
                     }
                     else if(strcmp(hook, "format-check") == 0){
@@ -1891,10 +1891,10 @@ int run_pre(int argc, char* const argv[]){
                             flag = 1;
                         }
                         if(flag == 0){
-                            printf("%s.........................." RED "FAILED" RESET, hook);
+                            printf("%s.........................." RED "FAILED\n" RESET, hook);
                             problem = 1;
                         } else {
-                            printf("%s.........................." GRN "PASSED" RESET, hook);
+                            printf("%s.........................." GRN "PASSED\n" RESET, hook);
                         }
                     }
                 }
