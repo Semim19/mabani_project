@@ -48,6 +48,7 @@ int run_checkout(int argc, char* const argv[]);
 int run_branch(int argc, char* const argv[]);
 int run_log(int argc, char* const argv[]);
 int run_revert(int argc, char* const argv[]);
+int run_grep(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -1602,6 +1603,59 @@ int run_revert(int argc, char* const argv[]){
     }
 
 }
+int run_grep(int argc, char* const argv[]){
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    char word[100];
+    strcpy(word, argv[5]);
+    int n_exist = 0;
+    int satr = 0;
+    int id_exist = 0;
+    char ID[20];
+    char file[1000];
+    FILE *myfile;
+    strcpy(file, argv[3]);
+    for(int i = 6; i < argc; i++){
+        if(strcmp(argv[i], "-n") == 0){
+            n_exist = 1;
+        }
+        if(strcmp(argv[i], "-c") == 0){
+            strcpy(ID, argv[i + 1]);
+            id_exist = 1;
+        }
+    }
+    if(id_exist){
+        chdir(".sem/commits");
+        chdir(ID);
+        myfile = fopen(file, "r");
+        if(myfile == NULL){
+            perror("Cannot open given file!");
+            return 1;
+        }
+        chdir(cwd);
+    }
+    myfile = fopen(file, "r");
+    char line[1000];
+    char avali[500] = "";
+    char dovomi[500] = "";
+    char sevomi[500] = "";
+    int ekhtelaf = 0;
+    int len = strlen(word);
+    while(fgets(line, 1000, myfile) != NULL){
+        satr++;
+        line[strcspn(line, "\n")] = 0;
+        if(strstr(line, word) != NULL){
+            if(n_exist){
+                printf("%d: ",satr);
+            }
+            ekhtelaf = strstr(line, word) - line;
+            snprintf(avali, ekhtelaf + 1, "%s", line);
+            snprintf(dovomi, len + 1, "%s", line + ekhtelaf);
+            sprintf(sevomi, "%s", line + ekhtelaf + len);
+            printf("%s" YEL "%s" RESET "%s\n", avali, dovomi, sevomi);
+        }
+    }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -1651,6 +1705,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "revert") == 0){
         return run_revert(argc, argv);
+    }
+    else if(strcmp(argv[1], "grep") == 0){
+        return run_grep(argc, argv);
     }
     else{
         alias* local = NULL;
