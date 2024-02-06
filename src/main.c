@@ -50,6 +50,7 @@ int run_log(int argc, char* const argv[]);
 int run_revert(int argc, char* const argv[]);
 int run_grep(int argc, char* const argv[]);
 int run_tag(int argc, char* const argv[]);
+int run_pre(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -1757,6 +1758,15 @@ int run_tag(int argc, char* const argv[]){
         return 0;
     }
 }
+int run_pre(int argc, char* const argv[]){
+    if(strcmp(argv[2], "hooks") == 0 && strcmp(argv[3], "list") == 0){
+        printf("todo-check\n");
+        printf("file-size-check\n");
+        printf("character-limit\n");
+        printf("format-check\n");
+        return 0;
+    }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
@@ -1812,6 +1822,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "tag") == 0){
         return run_tag(argc, argv);
+    }
+    else if(strcmp(argv[1], "pre-commit") == 0){
+        return run_pre(argc, argv);
     }
     else{
         alias* local = NULL;
