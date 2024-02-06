@@ -1785,6 +1785,15 @@ int run_pre(int argc, char* const argv[]){
         fclose(file);
         return 0;
     }
+    if(strcmp(argv[2], "applied") == 0 && strcmp(argv[3], "hooks") == 0){
+        FILE *file = fopen(".sem/config/hooks", "r");
+        char line[1000];
+        while(fgets(line, 1000, file) != NULL){
+            printf("%s", line);
+        }
+        fclose(file);
+        return 0;
+    }
     if(strcmp(argv[2], "remove") == 0 && strcmp(argv[3], "hook") == 0){
         char hook[100];
         strcpy(hook, argv[4]);
