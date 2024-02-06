@@ -1666,79 +1666,89 @@ int run_grep(int argc, char* const argv[]){
 int run_tag(int argc, char* const argv[]){
     char cwd[1000];
     getcwd(cwd, sizeof(cwd));
-    char tag_name[1000];
-    char ID[20];
-    char message[1000];
-    char date[1000];
-    char username[1000];
-    char useremail[1000];
-    get_username(username);
-    get_useremail(useremail);
-    strcpy(tag_name, argv[3]);
-    chdir(".sem/tags");
-    DIR *dir = opendir(".");
-    int f_flag = 0;
-    int c_flag = 0;
-    int m_flag = 0;
-    for(int i = 2; i < argc; i++){
-        if(strcmp(argv[i], "-m") == 0){
-            m_flag = 1;
-            strcpy(message, argv[i + 1]);
+    if(strcmp(argv[2], "show") == 0){
+        chdir(".sem/tags");
+        char line[1000];
+        FILE *ajab = fopen(argv[3], "r");
+        while(fgets(line, 1000, ajab) != NULL){
+            printf("%s", line);
         }
-        if(strcmp(argv[i], "-c") == 0){
-            c_flag = 1;
-            strcpy(ID, argv[i + 1]);
-        }
-        if(strcmp(argv[i], "-f") == 0)
-            f_flag = 1;
     }
-    FILE *file;
-    struct dirent *entry;
-    while((entry = readdir(dir)) != NULL){
-        if(strcmp(entry->d_name, ".") != 0 || strcmp(entry->d_name, "..") != 0){
-            if(strcmp(entry->d_name, tag_name) == 0){
-                if(f_flag == 0){
-                    perror("This tag already exists!");
-                    return 1;
-                } else {
-                    break;
+    else{
+        char tag_name[1000];
+        char ID[20];
+        char message[1000];
+        char date[1000];
+        char username[1000];
+        char useremail[1000];
+        get_username(username);
+        get_useremail(useremail);
+        strcpy(tag_name, argv[3]);
+        chdir(".sem/tags");
+        DIR *dir = opendir(".");
+        int f_flag = 0;
+        int c_flag = 0;
+        int m_flag = 0;
+        for(int i = 2; i < argc; i++){
+            if(strcmp(argv[i], "-m") == 0){
+                m_flag = 1;
+                strcpy(message, argv[i + 1]);
+            }
+            if(strcmp(argv[i], "-c") == 0){
+                c_flag = 1;
+                strcpy(ID, argv[i + 1]);
+            }
+            if(strcmp(argv[i], "-f") == 0)
+                f_flag = 1;
+        }
+        FILE *file;
+        struct dirent *entry;
+        while((entry = readdir(dir)) != NULL){
+            if(strcmp(entry->d_name, ".") != 0 || strcmp(entry->d_name, "..") != 0){
+                if(strcmp(entry->d_name, tag_name) == 0){
+                    if(f_flag == 0){
+                        perror("This tag already exists!");
+                        return 1;
+                    } else {
+                        break;
+                    }
                 }
             }
         }
-    }
-    chdir(cwd);
-    if(c_flag == 0){
-        file = fopen(".sem/state", "r");
-        fscanf(file, "%s", ID);
-        fclose(file);
-        ID[strcspn(ID, "\n")] = 0;
-        if(strcmp(ID, "HEAD") == 0){
-            file = fopen(".sem/currbranch", "r");
-            char branch[100];
-            fscanf(file, "%s", branch);
-            branch[strcspn(branch, "\n")] = 0;
-            fclose(file);
-            chdir(".sem/branches");
-            file = fopen(branch, "r");
+        chdir(cwd);
+        if(c_flag == 0){
+            file = fopen(".sem/state", "r");
             fscanf(file, "%s", ID);
             fclose(file);
             ID[strcspn(ID, "\n")] = 0;
+            if(strcmp(ID, "HEAD") == 0){
+                file = fopen(".sem/currbranch", "r");
+                char branch[100];
+                fscanf(file, "%s", branch);
+                branch[strcspn(branch, "\n")] = 0;
+                fclose(file);
+                chdir(".sem/branches");
+                file = fopen(branch, "r");
+                fscanf(file, "%s", ID);
+                fclose(file);
+                ID[strcspn(ID, "\n")] = 0;
+            }
+            
         }
-        
-    }
-    chdir(cwd);
-    time_t currtime;
-    time(&currtime);
-    struct tm *localTime = localtime(&currtime);
-    sprintf(date, "%s", asctime(localTime));
-    chdir(".sem/tags");
-    file = fopen(tag_name, "w");
-    fprintf(file, "tag %s\ncommit %s\nAuthor: %s <%s>\nDate: %s", tag_name, ID, username, useremail, date);
-    fclose(file);
-    if(m_flag){
-        file = fopen(tag_name, "a");
-        fprintf(file, "Message: %s\n", message);
+        chdir(cwd);
+        time_t currtime;
+        time(&currtime);
+        struct tm *localTime = localtime(&currtime);
+        sprintf(date, "%s", asctime(localTime));
+        chdir(".sem/tags");
+        file = fopen(tag_name, "w");
+        fprintf(file, "tag %s\ncommit %s\nAuthor: %s <%s>\nDate: %s", tag_name, ID, username, useremail, date);
         fclose(file);
+        if(m_flag){
+            file = fopen(tag_name, "a");
+            fprintf(file, "Message: %s\n", message);
+            fclose(file);
+        }
     }
 }
 // #define _DEBUG_
