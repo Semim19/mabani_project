@@ -313,6 +313,7 @@ int run_init(int argc, char* const argv[]){
         if(mkdir("config", 0755) != 0) return 1;
         if(mkdir("branches", 0755) != 0) return 1;
         if(mkdir("commits", 0755) != 0) return 1;
+        if(mkdir("tags", 0755) != 0) return 1;
 
         chdir(cwd);
         FILE *file = fopen(".sem/staging/fileAddress", "w");
@@ -336,6 +337,11 @@ int run_init(int argc, char* const argv[]){
         fclose(file);
         file = fopen(".sem/branches/master", "w");
         fprintf(file, "%d\n", 0);
+        fclose(file);
+        file = fopen(".sem/hookstatus", "w");
+        fprintf(file, "%d\n", 1);
+        fclose(file);
+        file = fopen(".sem/config/hooks", "w");
         fclose(file);
     } else {
         perror("sem repo has already been initialized!");
