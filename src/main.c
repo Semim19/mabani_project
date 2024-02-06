@@ -1666,13 +1666,18 @@ int run_grep(int argc, char* const argv[]){
 int run_tag(int argc, char* const argv[]){
     char cwd[1000];
     getcwd(cwd, sizeof(cwd));
-    if(strcmp(argv[2], "show") == 0){
+    if(argc == 2){
+        chdir(".sem/tags");
+        system("ls");
+    }
+    else if(strcmp(argv[2], "show") == 0){
         chdir(".sem/tags");
         char line[1000];
         FILE *ajab = fopen(argv[3], "r");
         while(fgets(line, 1000, ajab) != NULL){
             printf("%s", line);
         }
+        return 0;
     }
     else{
         char tag_name[1000];
@@ -1704,7 +1709,7 @@ int run_tag(int argc, char* const argv[]){
         FILE *file;
         struct dirent *entry;
         while((entry = readdir(dir)) != NULL){
-            if(strcmp(entry->d_name, ".") != 0 || strcmp(entry->d_name, "..") != 0){
+            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
                 if(strcmp(entry->d_name, tag_name) == 0){
                     if(f_flag == 0){
                         perror("This tag already exists!");
@@ -1749,6 +1754,7 @@ int run_tag(int argc, char* const argv[]){
             fprintf(file, "Message: %s\n", message);
             fclose(file);
         }
+        return 0;
     }
 }
 // #define _DEBUG_
