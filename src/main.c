@@ -1785,6 +1785,24 @@ int run_pre(int argc, char* const argv[]){
         fclose(file);
         return 0;
     }
+    if(strcmp(argv[2], "remove") == 0 && strcmp(argv[3], "hook") == 0){
+        char hook[100];
+        strcpy(hook, argv[4]);
+        char line[1000];
+        FILE *file = fopen(".sem/config/hooks", "r");
+        FILE *file2 = fopen(".sem/config/tmphook", "w");
+        while(fgets(line, 1000, file) != NULL){
+            line[strcspn(line, "\n")] = 0;
+            if(strcmp(hook, line) != 0){
+                fprintf(file2, "%s\n", line);
+            }
+        }
+        fclose(file);
+        fclose(file2);
+        remove(".sem/config/hooks");
+        rename(".sem/config/tmphook", ".sem/config/hooks");
+        return 0;
+    }
 }
 // #define _DEBUG_
 #ifdef _DEBUG_
