@@ -29,6 +29,7 @@ typedef struct alias{
 //struct end
 
 //functions
+int isValid(char *file);
 int charcount(FILE *file);
 unsigned int fsize(char *filename);
 void show_info(char id[]);
@@ -70,6 +71,37 @@ int run_commit(int argc, char* const argv[]);
 int compare_date(char *file1, char *file2);
 int checkoutid(char ID[]);
 
+int isValid(char *file){
+    int flag = 1;
+    char line[1000];
+    if(strstr(file, ".txt") != NULL){
+        FILE *temp = fopen(file, "r");
+        while(fgets(line, 1000, temp) != NULL){
+            if(strstr(line, "TODO") != NULL){
+                flag = 0;
+                break;
+            }
+        }
+        fclose(temp);
+        return flag;
+    }
+    else if(strstr(file, ".c") != NULL){
+        flag = 0;
+        FILE *temp = fopen(file, "r");
+        while(fgets(line, 1000, temp) != NULL){
+            if(strstr(line, "//") != NULL){
+                char *a = strstr(line, "//");
+                if(strstr(a, "TODO") != NULL){
+                    flag = 1;
+                    break;
+                }
+            }
+        }
+        fclose(temp);
+        return flag;
+    }
+    return -1;
+}
 int charcount(FILE *file){
     char c;
     int count = 0;
@@ -1780,59 +1812,6 @@ int run_tag(int argc, char* const argv[]){
     }
 }
 int run_pre(int argc, char* const argv[]){
-    if(strcmp(argv[2], "hooks") == 0 && strcmp(argv[3], "list") == 0){
-        printf("todo-check\n");
-        printf("file-size-check\n");
-        printf("character-limit\n");
-        printf("format-check\n");
-        return 0;
-    }
-    if(strcmp(argv[2], "add") == 0 && strcmp(argv[3], "hook") == 0){
-        char hook[100];
-        strcpy(hook, argv[4]);
-        char line[1000];
-        FILE *file = fopen(".sem/config/hooks", "r");
-        while(fgets(line, 1000, file) != NULL){
-            line[strcspn(line, "\n")] = 0;
-            if(strcmp(hook, line) == 0){
-                fclose(file);
-                perror("This hook is already added!");
-                return 1;
-            }
-        }
-        fclose(file);
-        file = fopen(".sem/config/hooks", "a");
-        fprintf(file, "%s\n", hook);
-        fclose(file);
-        return 0;
-    }
-    if(strcmp(argv[2], "applied") == 0 && strcmp(argv[3], "hooks") == 0){
-        FILE *file = fopen(".sem/config/hooks", "r");
-        char line[1000];
-        while(fgets(line, 1000, file) != NULL){
-            printf("%s", line);
-        }
-        fclose(file);
-        return 0;
-    }
-    if(strcmp(argv[2], "remove") == 0 && strcmp(argv[3], "hook") == 0){
-        char hook[100];
-        strcpy(hook, argv[4]);
-        char line[1000];
-        FILE *file = fopen(".sem/config/hooks", "r");
-        FILE *file2 = fopen(".sem/config/tmphook", "w");
-        while(fgets(line, 1000, file) != NULL){
-            line[strcspn(line, "\n")] = 0;
-            if(strcmp(hook, line) != 0){
-                fprintf(file2, "%s\n", line);
-            }
-        }
-        fclose(file);
-        fclose(file2);
-        remove(".sem/config/hooks");
-        rename(".sem/config/tmphook", ".sem/config/hooks");
-        return 0;
-    }
     if(argc == 2){
         int problem = 0;
         char hook[100];
@@ -1897,19 +1876,84 @@ int run_pre(int argc, char* const argv[]){
                             printf("%s.........................." GRN "PASSED\n" RESET, hook);
                         }
                     }
+                    else if(strcmp(hook, "todo-check") == 0){
+                        if(isValid(entry->d_name) == 0){
+                            printf("%s.........................." RED "FAILED\n" RESET, hook);
+                            problem = 1;
+                        }
+                        else if(isValid(entry->d_name) == 1) {
+                            printf("%s.........................." GRN "PASSED\n" RESET, hook);
+                        }
+                        else {
+                            printf("%s.........................." YEL "SKIPPED\n" RESET, hook);
+                        }
+                    }
                 }
                 fclose(file);
             }
         }
-        
+        return 0;
 
+    }
+    if(strcmp(argv[2], "hooks") == 0 && strcmp(argv[3], "list") == 0){
+        printf("todo-check\n");
+        printf("file-size-check\n");
+        printf("character-limit\n");
+        printf("format-check\n");
+        return 0;
+    }
+    if(strcmp(argv[2], "add") == 0 && strcmp(argv[3], "hook") == 0){
+        char hook[100];
+        strcpy(hook, argv[4]);
+        char line[1000];
+        FILE *file = fopen(".sem/config/hooks", "r");
+        while(fgets(line, 1000, file) != NULL){
+            line[strcspn(line, "\n")] = 0;
+            if(strcmp(hook, line) == 0){
+                fclose(file);
+                perror("This hook is already added!");
+                return 1;
+            }
+        }
+        fclose(file);
+        file = fopen(".sem/config/hooks", "a");
+        fprintf(file, "%s\n", hook);
+        fclose(file);
+        return 0;
+    }
+    if(strcmp(argv[2], "applied") == 0 && strcmp(argv[3], "hooks") == 0){
+        FILE *file = fopen(".sem/config/hooks", "r");
+        char line[1000];
+        while(fgets(line, 1000, file) != NULL){
+            printf("%s", line);
+        }
+        fclose(file);
+        return 0;
+    }
+    if(strcmp(argv[2], "remove") == 0 && strcmp(argv[3], "hook") == 0){
+        char hook[100];
+        strcpy(hook, argv[4]);
+        char line[1000];
+        FILE *file = fopen(".sem/config/hooks", "r");
+        FILE *file2 = fopen(".sem/config/tmphook", "w");
+        while(fgets(line, 1000, file) != NULL){
+            line[strcspn(line, "\n")] = 0;
+            if(strcmp(hook, line) != 0){
+                fprintf(file2, "%s\n", line);
+            }
+        }
+        fclose(file);
+        fclose(file2);
+        remove(".sem/config/hooks");
+        rename(".sem/config/tmphook", ".sem/config/hooks");
+        return 0;
     }
 }
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
-    int argc = 6;
-    char* argv[] = {"sem", "tag", "-a", "v1.0a", "-m", "ajab"};
+    int argc = 2;
+    char* argv[] = {"sem", "pre-commit"};
 #else
 int main(int argc, char* argv[]){
 #endif
