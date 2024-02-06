@@ -49,6 +49,7 @@ int run_branch(int argc, char* const argv[]);
 int run_log(int argc, char* const argv[]);
 int run_revert(int argc, char* const argv[]);
 int run_grep(int argc, char* const argv[]);
+int run_tag(int argc, char* const argv[]);
 int add_to_staging(char *filepath);
 int isDir(const char* fileName);
 int dir_staging(const char* dirname);
@@ -1662,11 +1663,89 @@ int run_grep(int argc, char* const argv[]){
         }
     }
 }
+int run_tag(int argc, char* const argv[]){
+    char cwd[1000];
+    getcwd(cwd, sizeof(cwd));
+    char tag_name[1000];
+    char ID[20];
+    char message[1000];
+    char date[1000];
+    char username[1000];
+    char useremail[1000];
+    get_username(username);
+    get_useremail(useremail);
+    strcpy(tag_name, argv[3]);
+    chdir(".sem/tags");
+    DIR *dir = opendir(".");
+    int f_flag = 0;
+    int c_flag = 0;
+    int m_flag = 0;
+    for(int i = 2; i < argc; i++){
+        if(strcmp(argv[i], "-m") == 0){
+            m_flag = 1;
+            strcpy(message, argv[i + 1]);
+        }
+        if(strcmp(argv[i], "-c") == 0){
+            c_flag = 1;
+            strcpy(ID, argv[i + 1]);
+        }
+        if(strcmp(argv[i], "-f") == 0)
+            f_flag = 1;
+    }
+    FILE *file;
+    struct dirent *entry;
+    while((entry = readdir(dir)) != NULL){
+        if(strcmp(entry->d_name, ".") != 0 || strcmp(entry->d_name, "..") != 0){
+            if(strcmp(entry->d_name, tag_name) == 0){
+                if(f_flag == 0){
+                    perror("This tag already exists!");
+                    return 1;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    chdir(cwd);
+    if(c_flag == 0){
+        file = fopen(".sem/state", "r");
+        fscanf(file, "%s", ID);
+        fclose(file);
+        ID[strcspn(ID, "\n")] = 0;
+        if(strcmp(ID, "HEAD") == 0){
+            file = fopen(".sem/currbranch", "r");
+            char branch[100];
+            fscanf(file, "%s", branch);
+            branch[strcspn(branch, "\n")] = 0;
+            fclose(file);
+            chdir(".sem/branches");
+            file = fopen(branch, "r");
+            fscanf(file, "%s", ID);
+            fclose(file);
+            ID[strcspn(ID, "\n")] = 0;
+        }
+        
+    }
+    chdir(cwd);
+    time_t currtime;
+    time(&currtime);
+    struct tm *localTime = localtime(&currtime);
+    sprintf(date, "%s", asctime(localTime));
+    chdir(".sem/tags");
+    file = fopen(tag_name, "w");
+    fprintf(file, "tag %s\ncommit %s\nAuthor: %s <%s>\nDate: %s", tag_name, ID, username, useremail, date);
+    fclose(file);
+    if(m_flag){
+        file = fopen(tag_name, "a");
+        fprintf(file, "Message: %s\n", message);
+        fclose(file);
+    }
+}
 // #define _DEBUG_
 #ifdef _DEBUG_
 int main(){
-    int argc = 3;
-    char* argv[] = {"sem", "checkout", "1"};
+    int argc = 6;
+    char* argv[] = {"sem", "tag", "-a", "v1.0a", "-m", "ajab"};
 #else
 int main(int argc, char* argv[]){
 #endif
@@ -1714,6 +1793,9 @@ int main(int argc, char* argv[]){
     }
     else if(strcmp(argv[1], "grep") == 0){
         return run_grep(argc, argv);
+    }
+    else if(strcmp(argv[1], "tag") == 0){
+        return run_tag(argc, argv);
     }
     else{
         alias* local = NULL;
