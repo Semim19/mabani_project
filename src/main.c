@@ -73,9 +73,13 @@ int checkoutid(char ID[]);
 int charcount(FILE *file){
     char c;
     int count = 0;
-    while(fgetc(c) != NULL){
+    c = fgetc(file);
+    count++;
+    while(c != EOF){
+        c = fgetc(file);
         count++;
     }
+    fclose(file);
     return count;
 }
 unsigned int fsize(char *filename){
@@ -1828,6 +1832,77 @@ int run_pre(int argc, char* const argv[]){
         remove(".sem/config/hooks");
         rename(".sem/config/tmphook", ".sem/config/hooks");
         return 0;
+    }
+    if(argc == 2){
+        int problem = 0;
+        char hook[100];
+        char cwd[1000];
+        getcwd(cwd, sizeof(cwd));
+        chdir(".sem/staging");
+        DIR *dir = opendir(".");
+        struct dirent *entry;
+        while((entry = readdir(dir)) != NULL){
+            if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, "fileAddress") != 0){
+                printf("%s\n", entry->d_name);
+                FILE *file = fopen("../config/hooks", "r");
+                while(fgets(hook, 100, file) != NULL){
+                    hook[strcspn(hook, "\n")] = 0;
+                    if(strcmp(hook, "character-limit") == 0){
+                        if(strstr(entry->d_name, ".txt") == NULL && strstr(entry->d_name, ".c") == NULL){
+                            printf("%s.........................." YEL "SKIPPED" RESET, hook);
+                        }
+                        int tedad = 0;
+                        FILE *ajab = fopen(entry->d_name, "r");
+                        tedad = charcount(ajab);
+                        if(tedad > 20000){
+                            printf("%s.........................." RED "FAILED" RESET, hook);
+                            problem = 1;
+                        } else {
+                            printf("%s.........................." GRN "PASSED" RESET, hook);
+                        }
+                    }
+                    else if(strcmp(hook, "file-size-check") == 0){
+                        unsigned int size = fsize(entry->d_name);
+                        if(size > 5242880){
+                            printf("%s.........................." RED "FAILED" RESET, hook);
+                            problem = 1;
+                        } else {
+                            printf("%s.........................." GRN "PASSED" RESET, hook);
+                        }
+                    }
+                    else if(strcmp(hook, "format-check") == 0){
+                        int flag = 0;
+                        if(strstr(entry->d_name, ".txt") != NULL){
+                            flag = 1;
+                        }
+                        else if(strstr(entry->d_name, ".c") != NULL){
+                            flag = 1;
+                        }
+                        else if(strstr(entry->d_name, ".mp4") != NULL){
+                            flag = 1;
+                        }
+                        else if(strstr(entry->d_name, ".m4a") != NULL){
+                            flag = 1;
+                        }
+                        else if(strstr(entry->d_name, ".mp3") != NULL){
+                            flag = 1;
+                        }
+                        else if(strstr(entry->d_name, ".wav") != NULL){
+                            flag = 1;
+                        }
+                        if(flag == 0){
+                            printf("%s.........................." RED "FAILED" RESET, hook);
+                            problem = 1;
+                        } else {
+                            printf("%s.........................." GRN "PASSED" RESET, hook);
+                        }
+                    }
+                }
+                fclose(file);
+            }
+        }
+        
+
     }
 }
 // #define _DEBUG_
