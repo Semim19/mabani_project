@@ -29,6 +29,8 @@ typedef struct alias{
 //struct end
 
 //functions
+int charcount(FILE *file);
+unsigned int fsize(char *filename);
 void show_info(char id[]);
 void previdfind(char id[]);
 int isHEAD(char id[], char branch[]);
@@ -68,6 +70,21 @@ int run_commit(int argc, char* const argv[]);
 int compare_date(char *file1, char *file2);
 int checkoutid(char ID[]);
 
+int charcount(FILE *file){
+    char c;
+    int count = 0;
+    while(fgetc(c) != NULL){
+        count++;
+    }
+    return count;
+}
+unsigned int fsize(char *filename){
+    struct stat st; 
+    if (stat(filename, &st) == 0)
+        return st.st_size;
+
+    return -1; 
+}
 void previdfind(char id[]){
     char tmp[20];
     char cwd[1000];
